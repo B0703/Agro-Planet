@@ -27,7 +27,7 @@ def fake_sources(monkeypatch, no_network):
         return lambda lat, lon: calls.append((name, lat)) or {"ok": True}
 
     for mod, fn in [(prefetch.power, "daily"), (prefetch.srtm, "terrain"), (prefetch.power, "soil_moisture"),
-                    (prefetch.chirps, "download"), (prefetch.imerg, "download")]:
+                    (prefetch.chirps, "download"), (prefetch.imerg, "download"), (prefetch.geocode, "point_name")]:
         monkeypatch.setattr(mod, fn, rec(f"{mod.__name__.rsplit('.', 1)[-1]}.{fn}"))
     monkeypatch.setattr(prefetch.climate, "build", lambda lat, lon, start_download: SimpleNamespace(
         correction=SimpleNamespace(coast=lat == -14.13)))
@@ -42,7 +42,7 @@ def test_sites_are_annex_b():
 def test_check_on_empty_cache_reports_everything_missing_without_network(no_network):
     lines = []
     missing = prefetch.run({"Ica": (-14.13, -75.7)}, check=True, out=lines.append)
-    assert missing == 4                                  # POWER diario, SRTM, humedad y lluvia
+    assert missing == 5                                  # POWER diario, SRTM, humedad, lluvia y nombre
     assert all("falta en la caché" in x for x in lines[1:])
     assert prefetch.http.get_json is not prefetch._offline   # la red queda como estaba
 
@@ -50,8 +50,16 @@ def test_check_on_empty_cache_reports_everything_missing_without_network(no_netw
 def test_coast_downloads_imerg_and_others_chirps(fake_sources):
     assert prefetch.run({"Ica": (-14.13, -75.7), "Puno": (-15.5, -70.13)}, out=lambda _: None) == 0
     names = [n for n, _ in fake_sources]
-    assert names == ["power.daily", "srtm.terrain", "power.soil_moisture", "imerg.download",
-                     "power.daily", "srtm.terrain", "power.soil_moisture", "chirps.download"]
+    assert names == ["power.daily", "srtm.terrain", "power.soil_moisture", "imerg.download", "geocode.point_name",
+                     "power.daily", "srtm.terrain", "power.soil_moisture", "chirps.download", "geocode.point_name"]
+
+
+def test_searches_are_prefetched(fake_sources, monkeypatch):
+    monkeypatch.setattr(prefetch.geocode, "search", lambda q: fake_sources.append(("geocode.search", q)) or [])
+    lines = []
+    assert prefetch.run({}, out=lines.append, searches=prefetch.SEARCHES) == 0
+    assert fake_sources == [("geocode.search", "Tarma, Junin")]
+    assert lines == ["Búsquedas de ejemplo (OpenStreetMap)", "  ✓ «Tarma, Junin» (0 s)"]
 
 
 def test_a_failure_does_not_stop_the_rest(fake_sources, monkeypatch):

@@ -146,6 +146,15 @@ def test_ca10_ica_whatsapp_en():
     assert msg.endswith("Talk to your agricultural advisor before deciding.")
 
 
+def test_ca06_tarma_and_ica_names():
+    """CA-06: «Tarma, Junin» da un solo resultado, «Tarma, Junín»; y el punto de Ica se llama «Pueblo Nuevo, Ica»
+    (T14). Respuestas de Nominatim guardadas por scripts/prefetch.py."""
+    from rotasat.sources import geocode
+    found = geocode.search("Tarma, Junin")
+    assert [r["name"] for r in found] == ["Tarma, Junín"]
+    assert geocode.point_name(-14.13, -75.70) == "Pueblo Nuevo, Ica"
+
+
 def test_ca05_ica_sufficient_irrigation():
     """CA-05: en Ica, con «Sí, agua suficiente», la quinua sube de 76 a 89 y queda sin limitaciones importantes."""
     pc = _place("Ica — Valle (Pueblo Nuevo)")

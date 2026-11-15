@@ -8,8 +8,7 @@ Las peticiones van una por una, porque ClimateSERV responde 503 con varias en pa
 lugar e IMERG unos 7 min. Lo que ya está guardado no se vuelve a pedir (cache.get_or_fetch), así que el script se puede
 cortar y volver a lanzar. En la costa se descarga IMERG; la app nunca lo descarga sola (Spec §10.2).
 
-Pendiente: cuando existan geocode.py (T14), ndvi.py (T18) y la lluvia de la cuenca del río Ica (T20), sus pasos se
-agregan a `steps()`.
+Pendiente: cuando existan ndvi.py (T18) y la lluvia de la cuenca del río Ica (T20), sus pasos se agregan a `steps()`.
 """
 from __future__ import annotations
 
@@ -21,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rotasat import cache, climate  # noqa: E402
-from rotasat.sources import chirps, http, imerg, power, srtm  # noqa: E402
+from rotasat.sources import chirps, geocode, http, imerg, power, srtm  # noqa: E402
 
 # Anexo B: nombre → (lat, lon).
 SITES: dict[str, tuple[float, float]] = {
@@ -33,6 +32,9 @@ SITES: dict[str, tuple[float, float]] = {
     "Puno — Altiplano (Juliaca)": (-15.5, -70.13),
     "Junín — Selva central (Satipo)": (-11.25, -74.64),
 }
+
+# Búsquedas que usan las pruebas de aceptación (CA-06).
+SEARCHES = ("Tarma, Junin",)
 
 
 def _rain(lat: float, lon: float):
@@ -60,6 +62,7 @@ def steps(lat: float, lon: float) -> list[tuple[str, object]]:
         ("NASA SRTM", lambda: srtm.terrain(lat, lon)),
         ("NASA POWER (humedad del suelo)", lambda: power.soil_moisture(lat, lon)),
         (rain_name, rain),
+        ("Nombre del lugar (OpenStreetMap)", lambda: geocode.point_name(lat, lon)),
     ]
 
 
@@ -67,22 +70,26 @@ def _offline(*_a, **_k):
     raise cache.SourceError("offline", "NotCached")
 
 
-def run(sites: dict[str, tuple[float, float]], check: bool = False, out=print) -> int:
+def run(sites: dict[str, tuple[float, float]], check: bool = False, out=print, searches=()) -> int:
     """Descarga (o, con `check`, solo revisa sin red) los lugares. Devuelve cuántos pasos faltan o fallaron."""
     real_get = http.get_json
     if check:
         http.get_json = _offline          # cualquier intento de ir a la red cuenta como «falta»
     try:
-        return _run(sites, check, out)
+        return _run(sites, check, out, searches)
     finally:
         http.get_json = real_get
 
 
-def _run(sites, check, out) -> int:
+def _run(sites, check, out, searches=()) -> int:
+    groups = [(f"{name} ({lat}, {lon})", steps(lat, lon)) for name, (lat, lon) in sites.items()]
+    if searches:
+        groups.append(("Búsquedas de ejemplo (OpenStreetMap)",
+                       [(f"«{q}»", lambda q=q: geocode.search(q)) for q in searches]))
     missing = 0
-    for name, (lat, lon) in sites.items():
-        out(f"{name} ({lat}, {lon})")
-        for label, fn in steps(lat, lon):
+    for title, group in groups:
+        out(title)
+        for label, fn in group:
             label = label() if callable(label) else label
             t0 = time.monotonic()
             try:
@@ -104,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     if not sites:
         print(f"Ningún lugar coincide con {args.site!r}.")
         return 2
-    missing = run(sites, check=args.check)
+    missing = run(sites, check=args.check, searches=() if args.site else SEARCHES)
     print(f"\n{'Todo guardado.' if not missing else f'Faltan o fallaron {missing} pasos.'} Caché: {cache.cache_dir()}")
     return 1 if missing else 0
 

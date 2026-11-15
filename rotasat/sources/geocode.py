@@ -33,8 +33,9 @@ _RANK = {
 }
 _OTHER = 3
 
-# RC-20, nombre de un punto: pueblo, ciudad menor, ciudad, distrito, provincia y departamento.
-POINT_FIELDS = ("village", "town", "city", "district", "county", "state")
+# RC-20, nombre de un punto: pueblo, ciudad menor, ciudad, distrito, provincia y departamento. En el Perú OSM pone la
+# provincia en `county` (Tarma) o en `region` (Huamanga); el departamento va en `state`.
+POINT_FIELDS = ("village", "town", "city", "district", "county", "region", "state")
 
 _throttle = threading.Lock()
 _last_call = 0.0

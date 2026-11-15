@@ -126,6 +126,14 @@ los pedidos se hacen de uno en uno.
   - En el resumen del clima, los meses lluviosos se unen con «, » y « y » / « and » (Anexo C.1).
   - WhatsApp: encabezado «🌱 *RotaSat* — lugar», viñetas «• », líneas en blanco entre bloques y `**` pasado a `*`
     (la negrita de WhatsApp). Se compara con la mejor de A y B; si empatan, gana A.
+- **RC-20 · Tipos de lugar y campos de la dirección (T14).** Para ordenar los resultados se usa el `addresstype` de
+  Nominatim: pueblos, caseríos y calles = `village`, `town`, `hamlet`, `isolated_dwelling`, `locality`, `road`; ciudades
+  y barrios = `city`, `suburb`, `neighbourhood`, `quarter`, `city_block`; distritos a departamentos = `district`,
+  `city_district`, `municipality`, `county`, `province`, `region`, `state`; lo demás va al final. El orden es estable.
+  El nombre de un resultado son las dos primeras partes de `display_name`. Para el nombre de un punto se toman, en orden,
+  `village`, `town`, `city`, `district`, `county`, `region` y `state`: en el Perú OSM pone la provincia unas veces en
+  `county` (Tarma) y otras en `region` (Huamanga). Verificado con el servicio real: CA-06 da «Tarma, Junín» y el punto
+  de Ica, «Pueblo Nuevo, Ica».
 - **Mejor mes (RC-09):** de enero a diciembre, se queda el mes con la mayor tupla
   `(round(aptitud), round(min(cobertura, 1.5), 2), −exposición_helada)`; solo se reemplaza si es estrictamente mayor,
   así en un empate total gana el mes más temprano.

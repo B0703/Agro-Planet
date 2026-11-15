@@ -1,0 +1,1 @@
+{"service": "geocode", "params": {"op": "reverse", "lat": -12.06, "lon": -75.29}, "fetched_at": "2026-11-15T18:29:41+00:00", "data": {"address": {"road": "Jirón Mariscal Gamarra", "town": "Chupaca", "city": "Chupaca", "region": "Chupaca", "state": "Junín", "ISO3166-2-lvl4": "PE-JUN", "postcode": "12500", "country": "Perú", "country_code": "pe"}}}
