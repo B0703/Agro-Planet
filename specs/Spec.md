@@ -292,7 +292,9 @@ Se calculan seis factores entre 0 y 1:
 Para cada uno de los 17 cultivos (todos menos «Descanso»):
 - Se prueba la siembra en los 12 meses y se elige el mejor comparando, en este orden: aptitud redondeada al entero;
   cobertura de lluvia (tope 1.5, redondeada a 2 decimales); menor exposición a heladas. En empate total gana el mes más temprano del año.
-- **Nivel:** aptitud ≥ 65 «Apto»; ≥ 40 «Con cuidado»; menor «No recomendado» (con el valor sin redondear).
+- **Nivel:** aptitud ≥ 65 «Apto»; ≥ 40 «Con cuidado»; menor «No recomendado», con la aptitud **redondeada al entero**
+  (corregido en la v1.0: el texto anterior decía «sin redondear», pero el Anexo B.1 de Ica solo se reproduce con el valor
+  redondeado; ver `Plan.md` D-RC09b).
 - **Factor limitante:** el factor más bajo de RC-08 (en empate, el primero en el orden temperatura, heladas, agua, sal,
   textura, pH). Si es 0.85 o más: «Sin limitaciones importantes». Si no, el motivo correspondiente (Anexo C).
 - Se muestran: aptitud redondeada, mejor mes, ciclo en meses, riego necesario redondeado a la decena, y

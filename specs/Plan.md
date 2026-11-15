@@ -101,9 +101,18 @@ los pedidos se hacen de uno en uno.
 - **D-RC09 · Desempates en la tabla de aptitud.** El Spec deja que este Plan fije el orden. Hipótesis: el original arma un
   `DataFrame` con los cultivos en el orden del Anexo A y llama a `sort_values("aptitud", ascending=False)` con el método de
   ordenación por defecto de pandas, que **no es estable**. Eso explica que en el Anexo B.2 de Chupaca salga primero la papa y
-  no la quinua. En la tarea T09 se comprueba esta hipótesis contra los 7 lugares del B.2. Si falla, se prueban otras variantes
-  (`kind`, orden de entrada) hasta reproducir el B.2 exacto, y aquí se anota cuál quedó.
-- **Mejor mes (RC-09):** se ordena por la tupla `(-round(aptitud), -round(min(cobertura,1.5),2), exposición_helada, mes)`.
+  no la quinua. **Confirmada en T09:** reproduce el top 5 del B.2 en los 7 lugares, incluidos todos los empates a 100.
+  Con `kind="stable"` el orden no coincide. La columna que se ordena es la aptitud redondeada (entero).
+- **D-RC09b · Nivel con la aptitud redondeada.** El texto original de RC-09 decía «sin redondear», pero en Ica el tarwi da
+  39.97. Sin redondear queda «No recomendado» y los contadores dan 3/10/4; el Anexo B.1 dice 3/11/3. Con la aptitud redondeada
+  (40, «Con cuidado») coinciden los 7 lugares, y en los otros 6 las dos reglas dan lo mismo. Se aprobó usar el valor redondeado
+  y se corrigió el Spec.
+- **Mejor mes (RC-09):** de enero a diciembre, se queda el mes con la mayor tupla
+  `(round(aptitud), round(min(cobertura, 1.5), 2), −exposición_helada)`; solo se reemplaza si es estrictamente mayor,
+  así en un empate total gana el mes más temprano.
+- **Factor limitante por temperatura:** «Muy frío» si la temperatura media más baja del ciclo es menor que el óptimo
+  inferior; si no, «Muy caluroso». Agua: sin riego se usa el texto de «La lluvia solo cubre…»; con riego, «Necesita mucha
+  agua de riego…».
 - **Panel lateral (RF-20):** se usa `st.dialog(width="large")` con CSS que lo fija a la derecha, con 640 px de ancho y 100 %
   en pantallas angostas. Streamlit ya lo cierra con Esc, con la ✕ y con un clic fuera. Solo se abre uno a la vez.
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la

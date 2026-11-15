@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T08 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T09 are done. The git repo has no commits yet.
 
 ## Commands
 
@@ -39,7 +39,7 @@ UI tests use `streamlit.testing.v1.AppTest` (see `tests/test_smoke.py`). The lay
 
 - Requirements have codes: `RF-xx` (functional), `RC-xx` (calculation rule), `RNF-xx` (non-functional), `CA-xx` (acceptance criterion). Cite these codes in plans, tasks, code comments and tests.
 - The goal is a **faithful replica** of a reference implementation. That means the same screens, the same texts (Annex C) and the same numbers (Annex B, ±1 unit). The numbers in the calculation rules (§6) and the crop table (Annex A) are requirements, so never "improve" or round them.
-- **Known behaviors in §10 must be preserved, not fixed.** Examples: the 36-month rotation timeline truncates the third crop; no GPM IMERG download for new coastal sites; the tie order between crops with equal aptitude comes from the reference sort (RC-09), and this affects which crops RC-12 picks.
+- **Known behaviors in §10 must be preserved, not fixed.** Examples: the 36-month rotation timeline truncates the third crop; no GPM IMERG download for new coastal sites; the tie order between crops with equal aptitude comes from pandas' default (unstable) `sort_values` over the Annex A order (D-RC09, verified against B.2), and this affects which crops RC-12 picks. Levels use the **rounded** aptitude (D-RC09b, approved; the Spec text was corrected).
 - Open decisions D1–D3 (§11): the proposal is no classic tabbed UI (`app.py`), keep the §10 behaviors as-is, and use a ±1 tolerance.
 
 ## Product architecture (from the spec)

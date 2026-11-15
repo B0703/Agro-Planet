@@ -237,3 +237,185 @@ def resolve_inputs(detected: Detected, overrides: dict | None = None, soil_estim
         rotation=tuple(tuple(step) for step in o.get("rotation", DEFAULT_ROTATION[region])),
         soil_from_satellite=from_sat,
     )
+
+
+# --- RC-08 Aptitud de un cultivo sembrado en un mes ---------------------------------------------------------------
+
+FROST_K = 0.06                  # f_helada = e^(−0.06 × exposición)
+WATER_MIN_FACTOR = 0.3          # sin riego: f_agua nunca baja de 0.3
+WATER_FULL_COVER = 0.5          # sin riego: con cobertura ≥ 0.5, f_agua = 1
+IRRIGATION_REF_MM = 900         # con riego: el castigo es completo a partir de 900 mm
+IRRIGATION_PENALTY = {"limitada": 0.45, "suficiente": 0.12}
+LIMITED_HIGH_KC = 0.9           # con agua limitada y Kc > 0.9, f_agua × 0.55
+LIMITED_HIGH_KC_FACTOR = 0.55
+SALT_K = 0.8
+PH_NEAR = 0.5
+FACTOR_ORDER = ("temp", "helada", "agua", "sal", "textura", "ph")  # orden de desempate del factor limitante
+NO_LIMIT_THRESHOLD = 0.85
+FALLOW_APTITUDE = 70            # RC-10: «Descanso» vale 70
+
+
+def cycle_months(sow_month: int, months: int) -> list[int]:
+    """Meses del ciclo, empezando en el de siembra y dando la vuelta al año."""
+    return [(sow_month - 1 + i) % 12 + 1 for i in range(months)]
+
+
+def effective_rain(p: float) -> float:
+    """Lluvia aprovechable de un mes con lluvia p (mm)."""
+    return max(0.0, 0.6 * p - 10) if p <= 70 else 0.8 * p - 24
+
+
+def _temp_score(t: float, opt: tuple, lim: tuple) -> float:
+    o1, o2 = opt
+    l1, l2 = lim
+    if o1 <= t <= o2:
+        return 1.0
+    if t < o1:
+        return max(0.0, (t - l1) / (o1 - l1))
+    return max(0.0, (l2 - t) / (l2 - o2))
+
+
+def _texture_factor(texture: str | None, preferred: tuple) -> float:
+    from .crops import TEXTURES
+    if texture is None or not preferred or texture in preferred:
+        return 1.0
+    i = TEXTURES.index(texture)
+    distance = min(abs(i - TEXTURES.index(p)) for p in preferred)
+    return 0.75 if distance == 1 else 0.5
+
+
+def _ph_factor(ph: float | None, rng: tuple) -> float:
+    if ph is None:
+        return 1.0
+    lo, hi = rng
+    if lo <= ph <= hi:
+        return 1.0
+    out = lo - ph if ph < lo else ph - hi
+    return 0.75 if out <= PH_NEAR else 0.5
+
+
+def crop_suitability(crop, sow_month: int, clim: pd.DataFrame, inputs: FarmInputs) -> dict:
+    """RC-08: aptitud (0–100) y sus seis factores para `crop` sembrado en `sow_month`."""
+    months = cycle_months(sow_month, crop.months)
+    c = clim.loc[months]
+
+    temps = [_temp_score(t, crop.t_opt, crop.t_lim) for t in c["t_media"]]
+    f_temp = 0.6 * (sum(temps) / len(temps)) + 0.4 * min(temps)
+
+    expo = float(((c["dias_helada"] + 2 * c["dias_helada_fuerte"]) * crop.frost_sens).sum())
+    f_frost = float(np.exp(-FROST_K * expo))
+
+    demand = c["et0"] * crop.kc
+    eff = c["lluvia"].map(effective_rain)
+    need = float(demand.sum())
+    covered = float(np.minimum(eff, demand).sum())
+    coverage = covered / need if need > 0 else 1.0
+    irrigation_mm = max(0.0, need - covered)
+    if inputs.irrigation == "no":
+        f_water = min(1.0, max(WATER_MIN_FACTOR, coverage / WATER_FULL_COVER))
+    else:
+        f_water = 1 - IRRIGATION_PENALTY[inputs.irrigation] * min(1.0, irrigation_mm / IRRIGATION_REF_MM)
+        if inputs.irrigation == "limitada" and crop.kc > LIMITED_HIGH_KC:
+            f_water *= LIMITED_HIGH_KC_FACTOR
+
+    f_salt = 1 - SALT_K * inputs.salt_level * (1 - crop.salt_tol)
+    f_texture = _texture_factor(inputs.texture, crop.textures)
+    f_ph = _ph_factor(inputs.ph, crop.ph)
+
+    factors = {"temp": f_temp, "helada": f_frost, "agua": f_water, "sal": f_salt, "textura": f_texture, "ph": f_ph}
+    return {
+        "aptitud": 100 * float(np.prod(list(factors.values()))),
+        "factors": factors,
+        "lluvia_cubre": coverage,
+        "riego_mm": irrigation_mm,
+        "riego_m3ha": irrigation_mm * 10,
+        "expo_helada": expo,
+        "t_min_ciclo": float(c["t_media"].min()),
+        "t_max_ciclo": float(c["t_media"].max()),
+    }
+
+
+def limiting_factor(crop, r: dict, inputs: FarmInputs) -> tuple[str, dict]:
+    """RC-09: el factor más bajo como (texto ES del Anexo C, campos). El texto se traduce con i18n.t()."""
+    name = min(FACTOR_ORDER, key=lambda k: r["factors"][k])   # min() se queda con el primero en un empate
+    if r["factors"][name] >= NO_LIMIT_THRESHOLD:
+        return "Sin limitaciones importantes", {}
+    if name == "temp":
+        o0, o1 = crop.t_opt
+        if r["t_min_ciclo"] < o0:
+            return ("Muy frío para este cultivo (media {t:.0f} °C; prefiere {o0}–{o1} °C)",
+                    {"t": r["t_min_ciclo"], "o0": o0, "o1": o1})
+        return "Muy caluroso (media {t:.0f} °C; prefiere {o0}–{o1} °C)", {"t": r["t_max_ciclo"], "o0": o0, "o1": o1}
+    if name == "helada":
+        return "Riesgo de heladas durante la campaña ({expo:.0f} puntos de exposición)", {"expo": r["expo_helada"]}
+    if name == "agua":
+        if inputs.irrigation == "no":
+            return ("La lluvia solo cubre {pct:.0f}% de lo que necesita: requiere riego",
+                    {"pct": r["lluvia_cubre"] * 100})
+        return "Necesita mucha agua de riego (~{riego:,.0f} m³/ha)", {"riego": r["riego_m3ha"]}
+    if name == "sal":
+        return "Poco tolerante a la sal", {}
+    if name == "textura":
+        return "Prefiere suelos {texturas}", {"texturas": crop.textures}   # la interfaz traduce y une con ', '
+    return "Prefiere pH {ph_min}–{ph_max}", {"ph_min": crop.ph[0], "ph_max": crop.ph[1]}
+
+
+# --- RC-09 Tabla de aptitud del lugar ----------------------------------------------------------------------------
+
+LEVEL_SUITABLE, LEVEL_CARE = 65, 40
+LEVELS = ("🟢 Apto", "🟡 Con cuidado", "🔴 No recomendado")   # textos ES del Anexo C
+COVERAGE_CAP = 1.5
+
+
+def level(aptitude: float) -> str:
+    """Nivel: ≥ 65 Apto; ≥ 40 Con cuidado; si no, No recomendado. Se llama con la aptitud REDONDEADA al entero
+    (decisión D-RC09b, Plan.md §6: es lo que reproduce el Anexo B.1; en Ica el tarwi da 39.97 → 40 «Con cuidado»)."""
+    if aptitude >= LEVEL_SUITABLE:
+        return LEVELS[0]
+    if aptitude >= LEVEL_CARE:
+        return LEVELS[1]
+    return LEVELS[2]
+
+
+def best_sowing(crop, clim: pd.DataFrame, inputs: FarmInputs) -> tuple[int, dict]:
+    """Mejor mes de siembra: mayor aptitud redondeada; luego mayor cobertura (tope 1.5, 2 decimales); luego menor
+    exposición a heladas. En empate total gana el mes más temprano del año."""
+    best_month, best, best_key = None, None, None
+    for m in range(1, 13):
+        r = crop_suitability(crop, m, clim, inputs)
+        key = (round(r["aptitud"]), round(min(r["lluvia_cubre"], COVERAGE_CAP), 2), -r["expo_helada"])
+        if best_key is None or key > best_key:
+            best_month, best, best_key = m, r, key
+    return best_month, best
+
+
+def suitability_table(clim: pd.DataFrame, inputs: FarmInputs) -> pd.DataFrame:
+    """RC-09: una fila por cultivo (los 17, sin «Descanso»), ordenada por aptitud redondeada de mayor a menor.
+
+    Desempate D-RC09 (Plan.md §6): se arma el DataFrame en el orden del Anexo A y se ordena con
+    `sort_values(ascending=False)` y el método por defecto de pandas (no estable), como el original.
+    """
+    from .crops import FIELD_CROPS
+    rows = []
+    for crop in FIELD_CROPS:
+        m, r = best_sowing(crop, clim, inputs)
+        rows.append({
+            "id": crop.id,
+            "aptitud": round(r["aptitud"]),
+            "aptitud_raw": r["aptitud"],
+            "nivel": level(round(r["aptitud"])),
+            "mes": m,
+            "meses": crop.months,
+            "lluvia_cubre": min(r["lluvia_cubre"], 1) * 100,
+            "riego_m3ha": round(r["riego_m3ha"], -1),
+            "limitante": limiting_factor(crop, r, inputs),
+            "expo_helada": r["expo_helada"],
+            "factors": r["factors"],
+        })
+    df = pd.DataFrame(rows)
+    return df.sort_values("aptitud", ascending=False).reset_index(drop=True)
+
+
+def level_counts(table: pd.DataFrame) -> tuple[int, int, int]:
+    """Contadores de «Qué sembrar» (RF-31.2): (aptos, con cuidado, no recomendados)."""
+    return tuple(int((table["nivel"] == lv).sum()) for lv in LEVELS)

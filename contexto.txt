@@ -1,0 +1,2089 @@
+ ▐▛███▛█   Claude Code v2.1.325
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   D:\nasaspace
+
+  Fable 5.2 is here for your longest and toughest coding tasks, and is included in your plan until November 16. It draws down usage faster than Opus 5.5. Switch with /model.
+  1 more notice hidden
+
+❯ /init                                                                         
+
+  Searched for 1 pattern, read 1 file, listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+● Write(CLAUDE.md)
+  ⎿  Wrote 41 lines to CLAUDE.md
+       1 # CLAUDE.md
+       2 
+       3 This file provides guidance to Claude Code (claude.ai/code) when
+          working with code in this repository.
+       4 
+       5 ## Current state
+       6 
+       7 The repository holds **only specifications**; there is no code, 
+         build system or tests yet, and the git repo has no commits.
+       8 When code is added, update this file with the real build/run/tes
+     … +34 lines (~5 KB) (ctrl+o to expand)
+
+● I created D:\nasaspace\CLAUDE.md. There's no code in the repository yet, only
+  the two spec files in specs/, so there are no build, lint or test commands to
+  list. I left a note to add them once code exists.
+
+  The file covers:
+  - What the repo holds: the RotaSat spec and the catalog of all on-screen
+    texts. Both specs mention two companion files, Plan.md (technical choices)
+    and task.md (work steps), which don't exist yet.
+  - How the spec works: each requirement has a code (RF, RC, RNF, CA). The goal
+    is an exact copy of an original implementation, so the numbers in the
+    calculation rules and crop table can't be changed or rounded. The known
+    quirks listed in §10 have to be kept, not fixed.
+  - The big picture:
+    - the three screens and their side panels
+    - the calculation steps in order, from 20 years of NASA climate data to crop
+      suitability to rotation scores
+    - the rule that rotation scores are relative to the group being compared
+    - the external data sources, which need no keys, plus offline caching and
+      failure handling
+    - the language rules for Spanish and English
+  - How to check the work: the acceptance criteria and the reference results in
+    Annex B (7 sites, with exact values for Ica) serve as the test suite.
+
+  No Cursor, Copilot, README, Codex or Gemini configs were found.
+
+✻ Crunched for 1m 2s · done 10:52 AM
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions
+
+❯ segun @specs\ comienza con la tarea 1                                         
+  ⎿  Listed directory specs\
+
+● User answered Claude's questions:
+  ⎿  · En specs/ solo hay Spec.md y Spec-anexo-C-textos.md. No existen task.md 
+     (la lista de tareas) ni Plan.md (la tecnología), así que no hay una «tarea 
+     1» definida. ¿Cómo sigo? → Redactar Plan.md + task.md (Recomendado)
+     · ¿Con qué tecnología se construye RotaSat? Los nombres de archivo del 
+     original (app_simple.py, agro.py) indican que era Python. → Python + 
+     Streamlit (Recomendado)
+
+● Write(specs\Plan.md)
+  ⎿  Wrote 116 lines to specs\Plan.md
+       1 # RotaSat — Plan técnico (Plan.md)
+       2 
+       3 | | |
+       4 |---|---|
+       5 | **Versión** | 0.1 (borrador para aprobación) |
+       6 | **Fecha** | 15 de noviembre de 2026 |
+       7 | **Documentos hermanos** | `Spec.md` (qué y por qué) · `task.md
+         ` (pasos de trabajo) · `Spec-anexo-C-textos.md` (textos ES/EN) |
+       8 
+       9 Este documento dice **CÓMO** se construye lo que pide `Spec.md`.
+     … +108 lines (~7 KB) (ctrl+o to expand)
+
+● Write(specs\task.md)
+  ⎿  Wrote 28 lines to specs\task.md
+       1 # RotaSat — Tareas (task.md)
+       2 
+       3 Cada tarea cita lo que cumple del Spec y se da por terminada cua
+         ndo pasan sus pruebas.
+       4 Orden: primero el motor sin red, luego los datos y al final la i
+         nterfaz.
+       5 
+       6 | N.º | Tarea | Cumple | Depende de | Hecho cuando |
+       7 |---|---|---|---|---|
+       8 | **T01** | Esqueleto del proyecto: estructura del Plan §2, `req
+     … +21 lines (~3 KB) (ctrl+o to expand)
+
+● Update(CLAUDE.md)
+  ⎿  Added 2 lines, removed 1 line
+       9  
+      10  - `specs/Spec.md`: the product spec for **RotaSat** (NASA Space
+           Apps Challenge 2026, challenge "Field Shift: Adapting Farms wi
+          th NASA Data"), written in Spanish. It says *what* the product 
+          does and *why*.
+      11  - `specs/Spec-anexo-C-textos.md`: Annex C, the catalog of every
+           visible string in Spanish/English (`ES|` / `EN|`), with `{plac
+          eholder:format}` formatting. It was generated from the referenc
+          e implementation (`app_simple.py` for UI, `agro.py` for the eng
+          ine), and the bracketed line numbers point into those files.
+      12 -- The spec also refers to sibling documents that **don't exist 
+         -yet**: `Plan.md` (how it's built: languages, libraries, service
+         - URLs, tie-break sort order) and `task.md` (work steps). Techno
+         -logy choices belong in `Plan.md`, not in `Spec.md`.            
+      12 +- `specs/Plan.md`: how it's built: Python + Streamlit, project 
+         +layout, service URLs, cache design and the D-RC09 tie-break dec
+         +ision. Technology choices belong here, not in `Spec.md`.       
+      13 +- `specs/task.md`: the ordered task list (T01–T21), each with t
+         +he requirements it covers and when it counts as done. Work thro
+         +ugh it in order.                                               
+      14  
+      15  ## Spec conventions that govern all work
+      16  
+
+● Redacté specs/Plan.md y specs/task.md y apunté los dos en CLAUDE.md. Todavía
+  no escribí código; primero necesito que usted apruebe el plan.
+
+  Plan.md:
+  - Tecnología: Python con Streamlit, folium para el mapa, Plotly para los
+    gráficos y pytest para las pruebas.
+  - Estructura: el motor de cálculo (agro.py, crops.py) no se conecta a
+    internet. Así las pruebas del Anexo B pueden correr sin conexión.
+  - Servicios externos: anoté la dirección de cada servicio de datos y una caché
+    en disco que guarda cada respuesta.
+  - Pendiente de confirmar: los códigos exactos de CHIRPS e IMERG en el servicio
+    de la NASA (SERVIR) se averiguan en la tarea T07.
+  - Desempates entre cultivos (D-RC09): el Spec deja este orden al Plan, así que
+    propongo una hipótesis. El original habría ordenado la tabla con pandas sin
+    conservar el orden del Anexo A. Eso explicaría que en Chupaca la papa salga
+    antes que la quinua, aunque las dos tienen 100 de aptitud. Se comprueba en
+    la tarea T09 contra el Anexo B.2.
+
+  task.md: son 21 tareas (T01 a T21). Cada una dice qué requisitos cumple, de
+  qué depende y cuándo se da por terminada. El orden es primero el motor de
+  cálculo, luego los datos y al final la interfaz.
+
+  Tarea 1 (T01) es crear el esqueleto del proyecto: la estructura de carpetas,
+  requirements.txt, pytest configurado y un app_simple.py mínimo que arranca.
+
+  Revise los dos archivos. ¿Apruebo y empiezo T01, o quiere cambiar algo antes?
+
+✻ Churned for 1m 36s · done 10:56 AM
+
+❯ Aprueba y empieza T01                                                         
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+● Server stopped (the error was just a process already gone). Now update
+  CLAUDE.md with the real commands.
+
+● Update(CLAUDE.md)
+  ⎿  Added 14 lines, removed 2 lines
+       4  
+       5  ## Current state
+       6  
+       7 -The repository holds **only specifications**; there is no code,
+         - build system or tests yet, and the git repo has no commits.   
+       8 -When code is added, update this file with the real build/run/te
+         -st commands.                                                   
+       7 +Progress is tracked in `specs/task.md`; T01 (project skeleton) 
+         +is done. The git repo has no commits yet.                      
+       8  
+       9 +## Commands                                                    
+      10 +                                                               
+      11 +A local venv lives in `.venv/`. On Windows, call it directly:  
+      12 +                                                               
+      13 +```bash                                                        
+      14 +python -m venv .venv && .venv/Scripts/python -m pip install -r 
+         +requirements.txt                                               
+      15 +.venv/Scripts/python -m streamlit run app_simple.py          # 
+         +http://localhost:8501                                          
+      16 +.venv/Scripts/python -m pytest                                #
+         + all tests (config in pyproject.toml)                          
+      17 +.venv/Scripts/python -m pytest tests/test_smoke.py::test_app_st
+         +arts   # single test                                           
+      18 +```                                                            
+      19 +                                                               
+      20 +UI tests use `streamlit.testing.v1.AppTest` (see `tests/test_sm
+         +oke.py`). The layout follows `specs/Plan.md` §2. Keep the layer
+         +s separate: `rotasat/agro.py` and `rotasat/crops.py` must stay 
+         +pure, with no network access and no Streamlit, so that the Anne
+         +x B tests can run offline from `data/cache/`.                  
+      21 +                                                               
+      22  - `specs/Spec.md`: the product spec for **RotaSat** (NASA Space
+           Apps Challenge 2026, challenge "Field Shift: Adapting Farms wi
+          th NASA Data"), written in Spanish. It says *what* the product 
+          does and *why*.
+      23  - `specs/Spec-anexo-C-textos.md`: Annex C, the catalog of every
+           visible string in Spanish/English (`ES|` / `EN|`), with `{plac
+          eholder:format}` formatting. It was generated from the referenc
+          e implementation (`app_simple.py` for UI, `agro.py` for the eng
+          ine), and the bracketed line numbers point into those files.
+      24  - `specs/Plan.md`: how it's built: Python + Streamlit, project 
+          layout, service URLs, cache design and the D-RC09 tie-break dec
+          ision. Technology choices belong here, not in `Spec.md`.
+
+● Update(specs\task.md)
+  ⎿  Added 1 line, removed 1 line
+       5  
+       6  | N.º | Tarea | Cumple | Depende de | Hecho cuando |
+       7  |---|---|---|---|---|
+       8 -| **T01** | Esqueleto del proyecto: estructura del Plan §2, `re
+         -quirements.txt`, `pytest` configurado y un `app_simple.py` míni
+         -mo que arranca | — | — | `streamlit run app_simple.py` abre la 
+         -página y `pytest` corre |                                      
+       8 +| **T01** ✅ | Esqueleto del proyecto: estructura del Plan §2, 
+         +`requirements.txt`, `pytest` configurado y un `app_simple.py` m
+         +ínimo que arranca | — | — | `streamlit run app_simple.py` abre 
+         +la página y `pytest` corre |                                   
+       9  | **T02** | `crops.py`: Anexo A completo (18 entradas, con las 
+          notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 ids y
+           algunos valores puntuales |
+      10  | **T03** | `i18n.py`: catálogo del Anexo C en ES/EN y la funci
+          ón `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves exis
+          ten en los dos idiomas |
+      11  | **T04** | `cache.py` y `SourceError` | RNF-02, RNF-05 | T01 |
+           Pruebas de acierto y fallo de caché con un servicio simulado |
+
+● T01 está terminada. La prueba pasa (1 de 1) y la app arranca: levanté el
+  servidor, respondió correctamente y lo apagué después.
+
+  Lo que creé:
+  - Carpetas: rotasat/ (con sources/ y ui/), scripts/, tests/ y data/cache/,
+    según el Plan §2.
+  - requirements.txt: Streamlit, folium, streamlit-folium, streamlit-js-eval,
+    Plotly, pandas, numpy, requests y pytest.
+  - pyproject.toml: la configuración de pytest.
+  - .gitignore
+  - app_simple.py: por ahora solo muestra el título «🌱 RotaSat». Las vistas
+    llegan en T15.
+  - tests/test_smoke.py: comprueba que la app arranca sin errores.
+  - Entorno de Python: las dependencias quedaron instaladas en un entorno propio
+    del proyecto, .venv/. Este equipo tiene Python 3.15.2.
+
+  También agregué a CLAUDE.md los comandos reales para instalar, arrancar la app
+  y correr las pruebas, y marqué T01 como hecha en task.md.
+
+  Para verla: .venv/Scripts/python -m streamlit run app_simple.py
+
+  El repositorio todavía no tiene ningún commit. ¿Hago el primer commit o sigo
+  con T02 (la tabla de cultivos del Anexo A)?
+
+✻ Crunched for 3m 43s · done 11:04 AM
+
+❯ Sigue con T02                                                                 
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(rotasat\crops.py)
+  ⎿  Wrote 140 lines to rotasat\crops.py
+      1 """Cultivos y sus parámetros: Anexo A del Spec, copiado tal cual.
+      2 
+      3 Estos valores son parte de las reglas de cálculo (RC-08, RC-10, R
+        C-12). No se redondean ni se «mejoran».
+      4 El orden de `CROPS` es el del Anexo A e importa: es el orden de e
+        ntrada de la tabla de aptitud
+      5 (RC-09, desempate D-RC09 en Plan.md §6).
+      6 
+      7 Módulo puro: no usa la red ni Streamlit.
+      8 """
+     … +132 lines (ctrl+o to expand)
+
+● Now a test that parses Annex A straight from Spec.md and checks every value,
+  so typos in the copy can't slip through.
+
+● Write(tests\test_crops.py)
+  ⎿  Wrote 88 lines to tests\test_crops.py
+       1 """T02: crops.py reproduce el Anexo A del Spec.
+       2 
+       3 Compara cada valor con las tablas del Anexo A, leídas directamen
+         te de specs/Spec.md, para que
+       4 ningún error de transcripción pase desapercibido.
+       5 """
+       6 from pathlib import Path
+       7 
+       8 import pytest
+       9 
+     … +79 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(specs\task.md)  ⎿  Added 1 line, removed 1 line
+       6  | N.º | Tarea | Cumple | Depende de | Hecho cuando |
+       7  |---|---|---|---|---|
+       8  | **T01** ✅ | Esqueleto del proyecto: estructura del Plan §2, 
+          `requirements.txt`, `pytest` configurado y un `app_simple.py` m
+          ínimo que arranca | — | — | `streamlit run app_simple.py` abre 
+          la página y `pytest` corre |
+       9 -| **T02** | `crops.py`: Anexo A completo (18 entradas, con las 
+         -notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 ids y
+         - algunos valores puntuales |                                   
+       9 +| **T02** ✅ | `crops.py`: Anexo A completo (18 entradas, con l
+         +as notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 id
+         +s y algunos valores puntuales |                                
+      10  | **T03** | `i18n.py`: catálogo del Anexo C en ES/EN y la funci
+          ón `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves exis
+          ten en los dos idiomas |
+      11  | **T04** | `cache.py` y `SourceError` | RNF-02, RNF-05 | T01 |
+           Pruebas de acierto y fallo de caché con un servicio simulado |
+      12  | **T05** | `sources/power.py` (diario y humedad del suelo) y `
+          sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 | Ic
+          a descargado y guardado; la altitud SRTM da 405 m |
+
+● Update(CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+       4  
+       5  ## Current state
+       6  
+       7 -Progress is tracked in `specs/task.md`; T01 (project skeleton) 
+         -is done. The git repo has no commits yet.                      
+       7 +Progress is tracked in `specs/task.md`; T01–T02 are done. The g
+         +it repo has no commits yet.                                    
+       8  
+       9  ## Commands
+      10  
+
+● T02 está terminada: el Anexo A completo está en rotasat/crops.py y las 40
+  pruebas pasan.
+
+  rotasat/crops.py
+  - Contenido: las 18 entradas del Anexo A (17 cultivos y «Descanso») con todos
+    sus parámetros y las notas en español e inglés.
+  - Orden: es el mismo del Anexo A, y debe conservarse porque es el punto de
+    partida para el desempate entre cultivos que se comprueba en T09.
+  - Lista de 17 cultivos: FIELD_CROPS deja fuera «Descanso», como pide la regla
+    de la tabla de aptitud (RC-09).
+  - Orden de texturas: de arenoso a arcilloso, para el factor de textura
+    (RC-08).
+  - Utilidades: get(id), name(lang), note(lang) e is_legume.
+  - «(cualquiera)»: la textura de «Descanso» se guarda como lista vacía, que
+    significa «sin preferencia» (factor de textura = 1).
+  - Sin red: el módulo no usa internet ni Streamlit.
+
+  tests/test_crops.py lee las dos tablas del Anexo A directamente de
+  specs/Spec.md y compara valor por valor: parámetros, nombres, notas y orden.
+  Así un error al copiar los datos no puede pasar sin aviso. También comprueba
+  que las leguminosas son las cinco del glosario.
+
+  Marqué T02 como hecha en task.md y actualicé CLAUDE.md.
+
+  La siguiente es T03: pasar el catálogo de textos del Anexo C, en español e
+  inglés, a i18n.py. ¿Sigo?
+
+✻ Cogitated for 1m 10s · done 11:08 AM
+
+❯ Sigue con T03                                                                 
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Estoy pasando el Anexo C a código. Antes de seguir reviso los textos en
+  español que se repiten, para ver si su traducción al inglés cambia.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Write(scripts\build_texts.py)
+  ⎿  Wrote 174 lines to scripts\build_texts.py
+       1 """Genera rotasat/texts_data.py a partir del Anexo C (specs/Spec
+         -anexo-C-textos.md). Tarea T03.
+       2 
+       3     python scripts/build_texts.py           # escribe rotasat/te
+         xts_data.py
+       4     python scripts/build_texts.py --check   # sale con código 1 
+         si el archivo generado está desactualizado
+       5 
+       6 El Anexo C se generó desde el código de referencia, así que sus 
+         marcadores `{...}` son expresiones de Python
+     … +168 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Catalog generated and consistent; the two field mismatches are expected, since
+  the English text in those two entries is fixed. Now the i18n.py API.
+
+● Write(rotasat\i18n.py)
+  ⎿  Wrote 94 lines to rotasat\i18n.py
+       1 """Textos ES/EN (RF-60 a RF-64, Anexo C). Tarea T03.
+       2 
+       3 Los textos se piden con el texto exacto en español como clave:
+       4 
+       5     t("Buscar", "en")                                      → "Se
+         arch"
+       6     t("Llueven **{total:,.0f} mm al año**, ...", lang, total=792
+         , top=...)
+       7 
+       8 Una clave que no esté en el Anexo C lanza KeyError: así ningún t
+     … +87 lines (~3 KB) (ctrl+o to expand)
+
+● Write(tests\test_i18n.py)
+  ⎿  Wrote 104 lines to tests\test_i18n.py
+       1 """T03: catálogo de textos del Anexo C."""
+       2 import re
+       3 import string
+       4 import subprocess
+       5 import sys
+       6 from pathlib import Path
+       7 
+       8 import pytest
+       9 
+      10 from rotasat import i18n, texts_data
+     … +94 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(specs\task.md)
+  ⎿  Added 1 line, removed 1 line
+       7  |---|---|---|---|---|
+       8  | **T01** ✅ | Esqueleto del proyecto: estructura del Plan §2, 
+          `requirements.txt`, `pytest` configurado y un `app_simple.py` m
+          ínimo que arranca | — | — | `streamlit run app_simple.py` abre 
+          la página y `pytest` corre |
+       9  | **T02** ✅ | `crops.py`: Anexo A completo (18 entradas, con l
+          as notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 id
+          s y algunos valores puntuales |
+      10 -| **T03** | `i18n.py`: catálogo del Anexo C en ES/EN y la funci
+         -ón `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves exis
+         -ten en los dos idiomas |                                       
+      10 +| **T03** ✅ | `i18n.py`: catálogo del Anexo C en ES/EN y la fu
+         +nción `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves e
+         +xisten en los dos idiomas |                                    
+      11  | **T04** | `cache.py` y `SourceError` | RNF-02, RNF-05 | T01 |
+           Pruebas de acierto y fallo de caché con un servicio simulado |
+      12  | **T05** | `sources/power.py` (diario y humedad del suelo) y `
+          sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 | Ic
+          a descargado y guardado; la altitud SRTM da 405 m |
+      13  | **T06** | Motor del clima: corrección por altitud y tabla men
+          sual | RC-02, RC-03 | T05 | Pruebas a mano: pesos de la costa, 
+          ET0 y P90 |
+
+● Update(specs\Plan.md)
+  ⎿  Added 2 lines, removed 1 line
+      31    agro.py                # Motor puro sin red: RC-02, RC-03 y R
+          C-06 a RC-15
+      32    climate.py             # Arma la tabla de clima de un lugar: 
+          fuentes + RC-02/03/04
+      33    place.py               # Lugar: coordenadas, nombre (RF-16), 
+          región y valores por defecto
+      34 -  i18n.py                # Catálogo de textos del Anexo C: t(cl
+         -ave, idioma, **valores)                                        
+      34 +  i18n.py                # Catálogo de textos del Anexo C: t(te
+         +xto_es, idioma, **valores), vocab(), month()                   
+      35 +  texts_data.py          # GENERADO por scripts/build_texts.py 
+         +desde el Anexo C (no editar a mano)                            
+      36    cache.py               # Caché en disco (RNF-02)
+      37    sources/
+      38      power.py             # NASA POWER, datos diarios y mensuale
+          s
+
+● Update(CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+       4  
+       5  ## Current state
+       6  
+       7 -Progress is tracked in `specs/task.md`; T01–T02 are done. The g
+         -it repo has no commits yet.                                    
+       7 +Progress is tracked in `specs/task.md`; T01–T03 are done. The g
+         +it repo has no commits yet.                                    
+       8  
+       9  ## Commands
+      10  
+
+● Update(CLAUDE.md)
+  ⎿  Added 4 lines
+      17  .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_st
+          arts   # single test
+      18  ```
+      19  
+      20 +### Texts (i18n)                                               
+      21 +                                                               
+      22 +Every visible string goes through `rotasat.i18n.t(spanish_text,
+         + lang, **fields)`, keyed by the **exact Spanish text from Annex
+         + C**. An unknown key raises `KeyError`, so a string that isn't 
+         +in the annex can't reach the UI. Annex C placeholders were Pyth
+         +on expressions from the reference code; `scripts/build_texts.py
+         +` (`PLACEHOLDERS`) renames them to field names (`{ctx['elev']:,
+         +.0f}` becomes `{elev:,.0f}`). `rotasat/texts_data.py` is genera
+         +ted, so never hand-edit it. If Annex C changes, run `.venv/Scri
+         +pts/python scripts/build_texts.py`; a test fails when the gener
+         +ated file is stale. Domain vocabulary (regions, textures, month
+         +s, form options) is available through `vocab()`, `options()` an
+         +d `month()`.                                                   
+      23 +                                                               
+      24  UI tests use `streamlit.testing.v1.AppTest` (see `tests/test_sm
+          oke.py`). The layout follows `specs/Plan.md` §2. Keep the layer
+          s separate: `rotasat/agro.py` and `rotasat/crops.py` must stay 
+          pure, with no network access and no Streamlit, so that the Anne
+          x B tests can run offline from `data/cache/`.
+      25  
+      26  - `specs/Spec.md`: the product spec for **RotaSat** (NASA Space
+           Apps Challenge 2026, challenge "Field Shift: Adapting Farms wi
+          th NASA Data"), written in Spanish. It says *what* the product 
+          does and *why*.
+
+● T03 está terminada: los textos del Anexo C, en español e inglés, ya están en
+  código y las 323 pruebas pasan.
+
+  Cómo se usa: cada texto se pide con su frase exacta en español como clave, por
+  ejemplo t("Buscar", "en"), que devuelve «Search». Si alguien pide un texto
+  que no está en el Anexo C, el programa da error. Así no se puede colar en
+  pantalla ningún texto fuera del catálogo.
+
+  Cómo funciona:
+  - scripts/build_texts.py lee specs/Spec-anexo-C-textos.md y genera
+    rotasat/texts_data.py, que no debe editarse a mano.
+    - En el Anexo C, los valores dentro de los textos son fragmentos del código
+      original, como {ctx['elev']:,.0f}. El script les pone nombres simples,
+      como {elev:,.0f}, y conserva el formato de los números.
+    - Si aparece un fragmento que no reconoce, el script se detiene, para que
+      nada se pierda en silencio.
+    - Los dos textos que son solo un valor del vocabulario ([913] y [945]) se
+      dejan fuera, porque ya están en las tablas C.3 y C.4.
+  - rotasat/i18n.py ofrece los textos y también:
+    - el vocabulario de las tablas C.3 y C.4: riego, sal, motivos de fallo del
+      GPS, columnas, pH, regiones, criterios, texturas y pendiente;
+    - los meses en minúscula en español y con mayúscula en inglés (RF-64);
+    - los valores de pH que usa el cálculo;
+    - el texto del botón de idioma.
+
+  Pruebas (tests/test_i18n.py):
+  - Los 280 textos del Anexo C están en el catálogo y salen iguales en los dos
+    idiomas.
+  - Cada texto en español usa los mismos valores que su traducción.
+  - Fallan si texts_data.py quedó desactualizado respecto al Anexo C.
+
+  Dos detalles del Anexo C que respeté tal cual:
+  - En dos textos el inglés es una frase fija que no usa el dato del español: el
+    de la cuenca del río Ica y el error de SoilGrids.
+  - La frase de tendencia («subió/bajó» · «rose/fell») tenía la palabra dentro
+    del código original. Agregué esas cuatro palabras al catálogo como entradas
+    propias.
+
+  Marqué T03 como hecha en task.md y anoté en Plan.md y CLAUDE.md cómo se usa y
+  cómo se vuelve a generar el catálogo.
+
+  La siguiente es T04: la caché en disco y el error para fallos de servicios
+  externos. ¿Sigo?
+
+✻ Brewed for 3m 40s · done 11:17 AM
+
+❯ Sigue con la T04                                                              
+  ⎿  ⧉ Selected 1 lines from specs\Plan.md in Visual Studio Code
+
+● Write(rotasat\cache.py)
+  ⎿  Wrote 135 lines to rotasat\cache.py
+       1 """Caché en disco de las respuestas de servicios externos (RNF-0
+         2, RNF-05). Tarea T04.
+       2 
+       3 Hay un archivo JSON por respuesta en `data/cache/{servicio}/{sha
+         1(parámetros)}.json`. Primero se mira el disco y solo
+       4 si no está se llama al servicio. Si el servicio falla no se guar
+         da nada y se lanza `SourceError`.
+       5 
+       6 Las coordenadas (cualquier float de los parámetros) se redondean
+          a 4 decimales antes de armar la clave (RF-14), así un
+     … +129 lines (ctrl+o to expand)
+
+● Update(rotasat\cache.py)
+  ⎿  Added 1 line, removed 1 line
+      33          self.service = service
+      34          self.detail = detail
+      35          self.cause = cause
+      36 -        super().__init__(f"{service}: {detail or type(cause).__
+         -name__ if cause else detail}")                                 
+      36 +        super().__init__(f"{service}: {detail or (type(cause)._
+         +_name__ if cause else 'error')}")                              
+      37  
+      38      @property
+      39      def error_name(self) -> str:
+
+● Write(rotasat\sources\http.py)
+  ⎿  Wrote 28 lines to rotasat\sources\http.py
+       1 """Llamadas HTTP comunes a todas las fuentes (Plan.md §4). Tarea
+          T04.
+       2 
+       3 Siempre hay un tiempo de espera, se envía un User-Agent genérico
+          (sin datos del usuario) y todo fallo se convierte
+       4 en SourceError con el nombre del servicio.
+       5 """
+       6 from __future__ import annotations
+       7 
+       8 from typing import Any
+     … +20 lines (ctrl+o to expand)
+
+● Write(tests\test_cache.py)
+  ⎿  Wrote 137 lines to tests\test_cache.py
+       1 """T04: caché en disco y SourceError (RNF-02, RNF-05). Sin red: 
+         los servicios se simulan."""
+       2 import json
+       3 import threading
+       4 import time
+       5 
+       6 import pytest
+       7 import requests
+       8 
+       9 from rotasat import cache
+     … +128 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(specs\task.md)  ⎿  Added 1 line, removed 1 line
+       8  | **T01** ✅ | Esqueleto del proyecto: estructura del Plan §2, 
+          `requirements.txt`, `pytest` configurado y un `app_simple.py` m
+          ínimo que arranca | — | — | `streamlit run app_simple.py` abre 
+          la página y `pytest` corre |
+       9  | **T02** ✅ | `crops.py`: Anexo A completo (18 entradas, con l
+          as notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 id
+          s y algunos valores puntuales |
+      10  | **T03** ✅ | `i18n.py`: catálogo del Anexo C en ES/EN y la fu
+          nción `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves e
+          xisten en los dos idiomas |
+      11 -| **T04** | `cache.py` y `SourceError` | RNF-02, RNF-05 | T01 |
+         - Pruebas de acierto y fallo de caché con un servicio simulado |
+      11 +| **T04** ✅ | `cache.py`, `SourceError` y `sources/http.py` | 
+         +RNF-02, RNF-05 | T01 | Pruebas de acierto y fallo de caché con 
+         +un servicio simulado |                                         
+      12  | **T05** | `sources/power.py` (diario y humedad del suelo) y `
+          sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 | Ic
+          a descargado y guardado; la altitud SRTM da 405 m |
+      13  | **T06** | Motor del clima: corrección por altitud y tabla men
+          sual | RC-02, RC-03 | T05 | Pruebas a mano: pesos de la costa, 
+          ET0 y P90 |
+      14  | **T07** | `sources/chirps.py` y `imerg.py`, con la descarga e
+          n segundo plano y el estado «preliminar» | RC-04, RC-05 | T04, 
+          T06 | Chupaca queda con CHIRPS en la caché y en Ica se usa IMER
+          G desde la caché |
+
+● Update(CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+       4  
+       5  ## Current state
+       6  
+       7 -Progress is tracked in `specs/task.md`; T01–T03 are done. The g
+         -it repo has no commits yet.                                    
+       7 +Progress is tracked in `specs/task.md`; T01–T04 are done. The g
+         +it repo has no commits yet.                                    
+       8  
+       9  ## Commands
+      10  
+
+● Update(CLAUDE.md)
+  ⎿  Added 4 lines
+      17  .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_st
+          arts   # single test
+      18  ```
+      19  
+      20 +### External data                                              
+      21 +                                                               
+      22 +Every external call goes through `rotasat.cache.get_or_fetch(se
+         +rvice, params, fetch)`, which stores one JSON file per response
+         + in `data/cache/{service}/{sha1}.json`. Float parameters are ro
+         +unded to 4 decimals before the key is built. Writes are atomic,
+         + and nothing is cached when a fetch fails. Any failure surfaces
+         + as `rotasat.cache.SourceError` (with `.service` and `.error_na
+         +me`), which the UI turns into an Annex C message. HTTP requests
+         + use `rotasat.sources.http.get_json`, which sets a timeout and 
+         +a generic `RotaSat/1.0` User-Agent. Tests isolate the cache by 
+         +setting `ROTASAT_CACHE_DIR` to a temporary folder, and they nev
+         +er touch the network.                                          
+      23 +                                                               
+      24  ### Texts (i18n)
+      25  
+      26  Every visible string goes through `rotasat.i18n.t(spanish_text,
+           lang, **fields)`, keyed by the **exact Spanish text from Annex
+           C**. An unknown key raises `KeyError`, so a string that isn't 
+          in the annex can't reach the UI. Annex C placeholders were Pyth
+          on expressions from the reference code; `scripts/build_texts.py
+          ` (`PLACEHOLDERS`) renames them to field names (`{ctx['elev']:,
+          .0f}` becomes `{elev:,.0f}`). `rotasat/texts_data.py` is genera
+          ted, so never hand-edit it. If Annex C changes, run `.venv/Scri
+          pts/python scripts/build_texts.py`; a test fails when the gener
+          ated file is stale. Domain vocabulary (regions, textures, month
+          s, form options) is available through `vocab()`, `options()` an
+          d `month()`.
+
+● T04 está terminada: la caché en disco y el manejo de fallos de los servicios
+  externos ya están listos, y las 335 pruebas pasan, 12 de ellas nuevas.
+
+  Caché (rotasat/cache.py):
+  - Funcionamiento: cada respuesta de un servicio se guarda como un archivo en
+    data/cache/{servicio}/. Si ya está guardada se usa la copia y no se llama al
+    servicio, así un lugar ya consultado se abre sin internet (RNF-02).
+  - Coordenadas: se redondean a 4 decimales antes de buscar en la caché (RF-14).
+    Por eso -14.130000004 y -14.13 usan el mismo archivo.
+  - Fallos: si un servicio falla no se guarda nada y el error llega a la página
+    como SourceError. Ese error dice qué servicio falló y la causa, para que la
+    interfaz muestre el aviso del Anexo C (RNF-05).
+  - Descarga de la lluvia en segundo plano (T07): un archivo nunca queda a medio
+    escribir. Dos pedidos iguales al mismo tiempo hacen una sola consulta. Un
+    archivo dañado se vuelve a descargar.
+
+  Consultas a internet (rotasat/sources/http.py): todas tienen un tiempo máximo
+  de espera. Se identifican solo como RotaSat/1.0, sin ningún dato del usuario.
+  Cualquier fallo de red o una respuesta inválida se convierte en SourceError.
+
+  Pruebas (tests/test_cache.py): no usan internet, porque los servicios se
+  simulan. Revisan:
+  - la primera consulta y las repetidas;
+  - el redondeo de coordenadas;
+  - que no se guarda nada cuando hay un fallo;
+  - el uso sin conexión y los archivos dañados;
+  - los pedidos simultáneos;
+  - los errores de red (servicio caído, tiempo agotado, respuesta que no es
+    JSON).
+
+  Agregué sources/http.py a la fila de T04 en task.md y la marqué como hecha.
+  También describí el manejo de datos externos en CLAUDE.md.
+
+  La siguiente es T05: los clientes de NASA POWER (clima diario y humedad del
+  suelo) y de SRTM (altitud y pendiente). Será la primera tarea con consultas
+  reales a internet; la prueba esperada es que Ica dé 405 m de altitud. ¿Sigo?
+
+✻ Brewed for 2m 19s · done 11:23 AM
+
+❯ Sigue con la T05                                                              
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Both APIs are responding: SRTM gives 405 m for Ica, and NASA POWER's altitude
+  is 1319.6 m, though its monthly series has an extra annual "13" entry I'll
+  drop. Next I'm wiring up the clients. · summary
+
+● Write(rotasat\sources\power.py)
+  ⎿  Wrote 103 lines to rotasat\sources\power.py
+       1 """NASA POWER: clima diario 2005–2024 y humedad del suelo mensua
+         l (RC-01, RC-17). Tarea T05.
+       2 
+       3 Se guarda en la caché una versión compacta (columnas), no la res
+         puesta cruda. El valor de relleno -999 de POWER se
+       4 cambia por None (RC-01: «los valores marcados como faltantes se 
+         ignoran»).
+       5 """
+       6 from __future__ import annotations
+       7 
+     … +96 lines (ctrl+o to expand)
+
+● Write(rotasat\sources\srtm.py)
+  ⎿  Wrote 65 lines to rotasat\sources\srtm.py
+       1 """NASA SRTM (90 m) vía OpenTopoData: altitud del punto y cuadrí
+         cula 3×3 para la pendiente (RC-06). Tarea T05.
+       2 
+       3 Los 9 puntos van en una sola llamada. La cuadrícula se guarda de
+          norte a sur y de oeste a este:
+       4 
+       5     grid[0] = [NO, N, NE]
+       6     grid[1] = [O,  C, E ]
+       7     grid[2] = [SO, S, SE]
+       8 
+     … +57 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All pass, including the real network test. Now I save Ica's data in the
+  project cache (data/cache/):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(specs\task.md)
+  ⎿  Added 1 line, removed 1 line
+       9  | **T02** ✅ | `crops.py`: Anexo A completo (18 entradas, con l
+          as notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 id
+          s y algunos valores puntuales |
+      10  | **T03** ✅ | `i18n.py`: catálogo del Anexo C en ES/EN y la fu
+          nción `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves e
+          xisten en los dos idiomas |
+      11  | **T04** ✅ | `cache.py`, `SourceError` y `sources/http.py` | 
+          RNF-02, RNF-05 | T01 | Pruebas de acierto y fallo de caché con 
+          un servicio simulado |
+      12 -| **T05** | `sources/power.py` (diario y humedad del suelo) y `
+         -sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 | Ic
+         -a descargado y guardado; la altitud SRTM da 405 m |            
+      12 +| **T05** ✅ | `sources/power.py` (diario y humedad del suelo) 
+         +y `sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 |
+         + Ica descargado y guardado; la altitud SRTM da 405 m |         
+      13  | **T06** | Motor del clima: corrección por altitud y tabla men
+          sual | RC-02, RC-03 | T05 | Pruebas a mano: pesos de la costa, 
+          ET0 y P90 |
+      14  | **T07** | `sources/chirps.py` y `imerg.py`, con la descarga e
+          n segundo plano y el estado «preliminar» | RC-04, RC-05 | T04, 
+          T06 | Chupaca queda con CHIRPS en la caché y en Ica se usa IMER
+          G desde la caché |
+      15  | **T08** | Región, pendiente y valores por defecto | RC-06, RC
+          -07 | T06 | Región y pendiente del Anexo B.1 en los 7 lugares |
+
+● Update(CLAUDE.md)
+  ⎿  Added 1 line, removed 1 line
+       4  
+       5  ## Current state
+       6  
+       7 -Progress is tracked in `specs/task.md`; T01–T04 are done. The g
+         -it repo has no commits yet.                                    
+       7 +Progress is tracked in `specs/task.md`; T01–T05 are done. The g
+         +it repo has no commits yet.                                    
+       8  
+       9  ## Commands
+      10  
+
+● Update(CLAUDE.md)
+  ⎿  Added 1 line
+      15  .venv/Scripts/python -m streamlit run app_simple.py          # 
+          http://localhost:8501
+      16  .venv/Scripts/python -m pytest                                #
+           all tests (config in pyproject.toml)
+      17  .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_st
+          arts   # single test
+      18 +.venv/Scripts/python -m pytest -m network                     #
+         + tests that call the real services (deselected by default)     
+      19  ```
+      20  
+      21  ### External data
+
+● T05 está terminada. Ica ya está descargado y guardado en data/cache/, y la
+  altitud SRTM da 405 m, que era el criterio de la tarea. Pasan las 340 pruebas
+  sin internet y la prueba contra los servicios reales.
+
+  NASA POWER (rotasat/sources/power.py):
+  - Clima diario: temperatura media, máxima y mínima, lluvia y radiación, de
+    2005 a 2024 (7.305 días). Viene en una sola consulta que tarda unos 2
+    segundos.
+  - Altitud del área: el servicio la entrega junto con los datos; en Ica es
+    1.319,6 m. La usará la corrección de temperatura por altitud (RC-02).
+  - Datos faltantes: POWER marca con −999 los días sin dato. Se guardan como
+    vacíos y el cálculo los ignora, como pide RC-01.
+  - Humedad del suelo: viene por mes, en superficie y en la zona de raíces (240
+    meses). El servicio agrega un «mes 13» con el promedio del año, que se
+    descarta.
+  - Formato guardado: una versión compacta por columnas, de unos 330 KB, en vez
+    de la respuesta completa del servicio.
+
+  SRTM (rotasat/sources/srtm.py):
+  - Altitud del punto: se pide junto con los 9 puntos de la cuadrícula para la
+    pendiente (RC-06), todo en una sola llamada al servicio OpenTopoData.
+  - Pendiente: su cálculo se hará en T08; aquí solo se guardan las 9 altitudes.
+  - Límite del servicio: este servicio gratuito acepta como máximo una consulta
+    por segundo, así que se espera entre una y otra.
+  - Puntos sin dato: un punto sin dato, como uno en el mar, queda vacío. En ese
+    caso no se corrige la temperatura y la pendiente se toma como «suave».
+
+  Pruebas:
+  - tests/test_sources_power_srtm.py: las pruebas normales simulan los
+    servicios. Revisan la lectura de los datos, los faltantes, el «mes 13», el
+    uso de la caché, el orden de la cuadrícula y las respuestas con error.
+  - Prueba contra los servicios reales: está separada y no corre por defecto. Se
+    lanza con pytest -m network; ese comando quedó anotado en CLAUDE.md.
+
+  La siguiente es T06: la corrección de temperatura por altitud y la tabla de
+  clima de 12 meses (RC-02 y RC-03). Es la primera parte del motor de cálculo.
+  ¿Sigo?
+
+✻ Sautéed for 2m 54s · done 11:33 AM
+
+❯ Sigue con la T06                                                              
+
+● API Error: Connection lost mid-response. The response above may be 
+  incomplete.
+
+✻ Churned for 32s · done 11:35 AM
+
+❯ Continuar                                                                     
+
+● Write(rotasat\agro.py)
+  ⎿  Wrote 113 lines to rotasat\agro.py
+       1 """Motor de cálculo de RotaSat (Spec §6). Módulo puro: no usa la
+          red ni Streamlit.
+       2 
+       3 T06: RC-02 (corrección de temperatura por altitud) y RC-03 (tabl
+         a de clima mensual).
+       4 Los números de este archivo son parte del requisito: no se redon
+         dean ni se «mejoran».
+       5 """
+       6 from __future__ import annotations
+       7 
+     … +106 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Ica gives a mean annual temperature of 21.78 °C, which rounds to 21.8 °C, and
+  0 frost days, both as in Annex B. Next I check the other 6 sites as well
+  (non-coast path), downloading their data:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All 7 sites match Annex B.1: altitude, mean temperature and frost days. Now
+  the tests.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● T06 está terminada: la corrección de temperatura por altitud (RC-02) y la
+  tabla de clima de 12 meses (RC-03) ya están en rotasat/agro.py. Los resultados
+  coinciden con el Anexo B en los 7 lugares de ejemplo, y las 354 pruebas
+  pasan.
+
+  Comparación con el Anexo B.1, con los datos reales de la NASA:
+
+  ┌──────────────┬──────────┬───────────────────┬────────────────────────┐
+  │    Lugar     │ Altitud  │   T media anual   │ Días con helada al año │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Ica          │ 405 m ✓  │ 21.78 → 21.8 °C ✓ │ 0 ✓                    │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Chupaca      │ 3272 m ✓ │ 12.08 → 12.1 ✓    │ 4.2 → 4 ✓              │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Huancavelica │ 3788 m ✓ │ 9.10 → 9.1 ✓      │ 48 ✓                   │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Huamanga     │ 2733 m ✓ │ 14.88 → 14.9 ✓    │ 0 ✓                    │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Andahuaylas  │ 2894 m ✓ │ 14.16 → 14.2 ✓    │ 0 ✓                    │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Juliaca      │ 3832 m ✓ │ 9.87 → 9.9 ✓      │ 101.1 → 101 ✓          │
+  ├──────────────┼──────────┼───────────────────┼────────────────────────┤
+  │ Satipo       │ 623 m ✓  │ 26.70 → 26.7 ✓    │ 0 ✓                    │
+  └──────────────┴──────────┴───────────────────┴────────────────────────┘
+
+  Solo Ica cuenta como costa desértica: está a menos de 1500 m y la lluvia de
+  NASA POWER da 101 mm al año. Por eso su corrección por altitud (+5.9 °C) se
+  reparte según el mes, como pide la regla de la inversión térmica.
+
+  Lo que se agregó:
+  - Corrección por altitud: compara la altitud del área de NASA POWER con la del
+    punto exacto. En los lugares de costa aplica el peso de cada mes. Si falta
+    alguna de las dos altitudes, no corrige.
+  - Tabla de clima de 12 meses:
+    - la evaporación (método Hargreaves-Samani);
+    - el umbral de calor extremo del lugar (el 10 % de días más calurosos);
+    - lluvia y evaporación por mes;
+    - temperatura media, máxima y mínima;
+    - días con riesgo de helada, de helada fuerte y de calor extremo, divididos
+      entre los 20 años.
+  - Datos faltantes: se ignoran, y un día sin dato no cuenta en ningún conteo.
+
+  Pruebas:
+  - tests/test_climate_table.py: usa datos inventados que se pueden revisar a
+    mano. Comprueba la fórmula del ajuste, cuándo un lugar es costa, el peso de
+    cada mes, la evaporación y la división entre 20 años, contando los años
+    bisiestos. También revisa el conteo de heladas, el umbral de calor y los
+    datos faltantes.
+  - tests/test_annex_b.py: es la base de la prueba de aceptación CA-04. Compara
+    los 7 lugares con el Anexo B.1 usando solo los datos guardados y falla si
+    intenta conectarse a internet. Un lugar que no esté descargado se salta.
+
+  Además, los datos de NASA POWER y SRTM de los 7 lugares ya quedaron guardados
+  en data/cache/ (2,2 MB). Con eso queda adelantada parte de la descarga previa
+  que pide T13.
+
+  La siguiente es T07: la lluvia satelital, con CHIRPS para sierra y selva e
+  IMERG para la costa. CHIRPS se descarga en segundo plano y tarda de 1 a 5
+  minutos por lugar; mientras tanto los resultados se marcan como
+  «preliminares». Primero tengo que averiguar los códigos exactos de esos datos
+  en el servicio SERVIR de la NASA. ¿Sigo?
+
+✻ Sautéed for 2m 47s · done 11:39 AM
+
+❯ Sigue con la T07                                                              
+  ⎿  ⧉ Selected 1 lines from specs\Plan.md in Visual Studio Code
+  Ran 2 shell commands (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ Sigue con la T07                                                              
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Both datasets respond in ClimateSERV (CHIRPS is datatype=0, IMERG is
+  datatype=26). I'm next calibrating the unknown polygon size against Annex B.1
+  before writing the client. · summary
+
+● Write(rotasat\sources\climateserv.py)
+  ⎿  Wrote 74 lines to rotasat\sources\climateserv.py
+       1 """Cliente de NASA SERVIR ClimateSERV para series diarias de llu
+         via (CHIRPS, GPM IMERG). Tarea T07.
+       2 
+       3 Flujo: submitDataRequest → getDataRequestProgress (hasta 100; -1
+          es error) → getDataFromRequest.
+       4 Se pide el promedio («avg», operationtype=5) de un cuadrado pequ
+         eño alrededor del punto.
+       5 Los valores negativos significan «sin dato» y se guardan como No
+         ne (RC-04).
+       6 """
+     … +68 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Chupaca gives 790.9 mm, while Annex B says 792. That is within ±1, but not
+  exact. I'll try two other polygon sizes at the same time to see which one
+  reproduces the original:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● With 0.001° or 0.025° Chupaca gives 792.1 mm, matching Annex B exactly. To
+  choose between them I'll check two more sites (Juliaca, 498 mm; Satipo, 1582
+  mm):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The 0.025° grid reproduces all three sites (Chupaca 792.1, Juliaca 498.4,
+  Satipo 1581.6), so the original's cell is 0.05°, one CHIRPS pixel. I'm setting
+  that and writing the modules next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(rotasat\sources\chirps.py)
+  ⎿  Wrote 106 lines to rotasat\sources\chirps.py
+      1 """Lluvia diaria CHIRPS 2005–2024 (vía NASA SERVIR) con descarga 
+        en segundo plano (RC-04, RC-05). Tarea T07.
+      2 
+      3 Un lugar nuevo tarda de 1 a 5 minutos. `ensure_background()` lanz
+        a la descarga en un hilo (máximo 300 s) y vuelve
+      4 de inmediato; la interfaz consulta `status()` cada 6 s (RF-21). A
+        l terminar, los datos quedan en la caché.
+      5 """
+      6 from __future__ import annotations
+      7 
+     … +99 lines (ctrl+o to expand)
+
+● Write(rotasat\sources\imerg.py)
+  ⎿  Wrote 34 lines to rotasat\sources\imerg.py
+       1 """Lluvia diaria GPM IMERG 2015–2024 (vía NASA SERVIR) para la c
+         osta (RC-04). Tarea T07.
+       2 
+       3 Comportamiento conocido que se conserva (Spec §10.2): la página 
+         **solo lee** IMERG de la caché; nunca inicia una
+       4 descarga para un lugar nuevo. Solo scripts/prefetch.py llama a `
+         download()`.
+       5 """
+       6 from __future__ import annotations
+       7 
+     … +27 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● IMERG returned only 3439 days (3653 expected) and 51.9 mm/year, while Annex B
+  says 49. I'll look at which days are missing:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Datatype 26 stops on 2024-06-01, apparently the discontinued older IMERG
+  version, which accounts for both the gap and the mismatch. Next I'll check
+  which other ClimateSERV datatypes carry IMERG through 2024. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The 503 errors came from my sending 20 requests at once, so I'm switching to
+  one at a time. I'm checking that the service has recovered, and I'll test
+  whether a larger square for IMERG's 0.1° pixel fixes the problem. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The service is back. I'll launch the IMERG download with half-side 0.05 in the
+  background (about 7 min) and meanwhile write the RC-04 assembly:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(rotasat\climate.py)
+  ⎿  Wrote 75 lines to rotasat\climate.py
+      1 """Arma la tabla de clima de un lugar: fuentes + RC-02, RC-03 y R
+        C-04. Tareas T06–T07.
+      2 
+      3 Este módulo une las fuentes (que pueden consultar la red o la cac
+        hé) con el motor puro de `agro.py`.
+      4 """
+      5 from __future__ import annotations
+      6 
+      7 from dataclasses import dataclass
+      8 
+     … +67 lines (ctrl+o to expand)
+
+● While IMERG downloads, the tests for this part:
+
+● Write(tests\test_rain.py)
+  ⎿  Wrote 155 lines to tests\test_rain.py
+       1 """T07: lluvia satelital CHIRPS / IMERG (RC-04, RC-05) y su uso 
+         en la tabla de clima. Sin red."""
+       2 import threading
+       3 
+       4 import numpy as np
+       5 import pandas as pd
+       6 import pytest
+       7 
+       8 from rotasat import cache, climate
+       9 from rotasat.cache import SourceError
+     … +146 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All 363 pass. I'll wait for the IMERG calibration download.
+
+● While IMERG finishes, I'll download CHIRPS for the 6 non-coast sites, one
+  after another, in the background:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Both downloads are running in the background (IMERG for Ica with the 0.05
+  square, and CHIRPS for the 6 sites). I'll pick up when they finish.
+
+✻ Cogitated for 19m 0s · done 12:01 PM
+
+● Background command "Download IMERG Ica with half-side 0.05 for calibration"
+completed (exit code 0)
+  Read 1 file (ctrl+o to expand)
+
+● With a 0.05° half-side, Ica gives 48.68, which rounds to 49 mm and matches
+  Annex B. So the original averaged one native pixel per product, and I'll give
+  each source its own box size next. · summary
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(rotasat\sources\climateserv.py)
+  ⎿  Added 8 lines, removed 3 lines
+      16  BASE = "https://climateserv.servirglobal.net/api/"
+      17  OP_AVERAGE = 5
+      18  INTERVAL_DAILY = 0
+      19 -HALF_SIDE = 0.025  # grados: medio lado del cuadrado (0.05° = u
+         -n píxel CHIRPS). Calibrado en T07: reproduce                   
+      20 -#                    la lluvia anual del Anexo B.1 en Chupaca (
+         -792), Juliaca (498) y Satipo (1582); 0.001 y 0.01 no.          
+      19  POLL_SECONDS = 3.0
+      20  
+      21 +# Medio lado (grados) del cuadrado que se promedia: un píxel na
+         +tivo de cada producto. Calibrado en T07 contra la              
+      22 +# lluvia anual del Anexo B.1:                                  
+      23 +#   CHIRPS (píxel 0.05°): 0.025 reproduce Chupaca 792, Juliaca 
+         +498 y Satipo 1582 (0.001 y 0.01 no).                           
+      24 +#   IMERG  (píxel 0.1°):  0.05 reproduce Ica 49 (0.025 da 52). 
+      25 +HALF_CHIRPS = 0.025                                            
+      26 +HALF_IMERG = 0.05                                              
+      27  
+      24 -def square(lat: float, lon: float, half: float = HALF_SIDE) -> 
+         -dict:                                                          
+      28 +                                                               
+      29 +def square(lat: float, lon: float, half: float) -> dict:       
+      30      ring = [[lon - half, lat - half], [lon + half, lat - half],
+           [lon + half, lat + half], [lon - half, lat + half],
+      31              [lon - half, lat - half]]
+      32      return {"type": "Polygon", "coordinates": [[[round(x, 6), r
+          ound(y, 6)] for x, y in ring]]}
+
+● Update(rotasat\sources\climateserv.py)
+  ⎿  Added 3 lines, removed 2 lines
+      48      return {"dates": [d for d, _ in rows], "rain": [v for _, v 
+          in rows]}
+      49  
+      50  
+      51 -def fetch_daily(service: str, datatype: int, lat: float, lon: f
+         -loat, start: date, end: date, *,                               
+      51 +def fetch_daily(service: str, datatype: int, lat: float, lon: f
+         +loat, start: date, end: date, *, half: float,                  
+      52                  max_seconds: float = 300) -> dict:
+      53 -    """Serie diaria {'dates': ['AAAAMMDD', ...], 'rain': [mm o 
+         -None, ...]}. Bloquea hasta `max_seconds`."""                   
+      53 +    """Serie diaria {'dates': ['AAAAMMDD', ...], 'rain': [mm o 
+         +None, ...]} del promedio de un cuadrado de medio lado          
+      54 +    `half` alrededor del punto. Bloquea hasta `max_seconds`."""
+      55      submitted = http.get_json(service, BASE + "submitDataReques
+          t/", {
+      56          "datatype": datatype,
+      57          "begintime": start.strftime("%m/%d/%Y"),
+
+● Update(rotasat\sources\climateserv.py)
+  ⎿  Added 1 line, removed 1 line
+      58          "endtime": end.strftime("%m/%d/%Y"),
+      59          "intervaltype": INTERVAL_DAILY,
+      60          "operationtype": OP_AVERAGE,
+      61 -        "geometry": json.dumps(square(lat, lon)),              
+      61 +        "geometry": json.dumps(square(lat, lon, half)),        
+      62          "isZip_CurrentDataType": "false",
+      63      }, timeout=60)
+      64      try:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Background command "Download CHIRPS for the 6 non-coast demo sites
+sequentially" completed (exit code 0)
+
+  Read 1 file (ctrl+o to expand)
+
+● The six CHIRPS sites match Annex B.1, so their cached files stay valid. I'm
+  re-downloading IMERG for Ica with the correct size and updating the tests
+  meanwhile. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(tests\test_rain.py)
+  ⎿  Added 13 lines, removed 2 lines
+      62          climateserv.fetch_daily("chirps", 0, *SITE, date(2005, 
+          1, 1), date(2005, 1, 2), max_seconds=0)
+      63  
+      64  
+      65 -def test_square_is_one_chirps_pixel():                         
+      66 -    ring = climateserv.square(-12.06, -75.29)["coordinates"][0]
+      65 +def test_square_is_one_native_pixel():                         
+      66 +    ring = climateserv.square(-12.06, -75.29, climateserv.HALF_
+         +CHIRPS)["coordinates"][0]                                      
+      67      assert ring[0] == [-75.315, -12.085] and ring[2] == [-75.26
+          5, -12.035] and ring[0] == ring[-1]
+      68 +    ring = climateserv.square(-14.13, -75.7, climateserv.HALF_I
+         +MERG)["coordinates"][0]                                        
+      69 +    assert ring[0] == [-75.75, -14.18] and ring[2] == [-75.65, 
+         +-14.08]                                                        
+      70  
+      71  
+      72 +def test_each_source_uses_its_pixel(monkeypatch):              
+      73 +    seen = []                                                  
+      74 +    monkeypatch.setattr(climateserv, "fetch_daily",            
+      75 +                        lambda service, dt, *a, half, **k: (see
+         +n.append((service, dt, half)), _series("2015-01-01", "2015-01-0
+         +2"))[1])                                                       
+      76 +    chirps.download(*SITE)                                     
+      77 +    imerg.download(-14.13, -75.7)                              
+      78 +    assert seen == [("chirps", 0, 0.025), ("imerg", 26, 0.05)] 
+      79 +                                                               
+      80 +                                                               
+      81  # --- Descarga en segundo plano (RC-05) -----------------------
+          -----------------------------------------------------
+      82  
+      83  def test_background_download_lifecycle(monkeypatch):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Now I extend tests/test_annex_b.py to check the B.1 rainfall source and annual
+  rainfall through climate.build:
+
+● Write(tests\test_annex_b.py)
+  ⎿  Added 39 lines, removed 31 lines
+       1  """Resultados de referencia del Anexo B (CA-04), con los datos 
+          guardados en data/cache/ y sin red.
+       2  
+       3 -Si un lugar no está en la caché, su prueba se salta (se descarg
+         -a con scripts/prefetch.py, T13).                               
+       4 -T06 cubre la parte de clima del B.1: altitud SRTM, temperatura 
+         -media anual y días de helada al año.                           
+       3 +Si un lugar no está completo en la caché, su prueba se salta (s
+         +e descarga con scripts/prefetch.py, T13).                      
+       4 +Hasta T07 se cubre la parte de clima del B.1: altitud SRTM, fue
+         +nte de lluvia, lluvia anual, temperatura media                 
+       5 +anual y días de helada al año. Con los mismos datos guardados l
+         +a coincidencia es exacta (Spec D3).                            
+       6  """
+       6 -                                                               
+       7  import pytest
+       8  
+       9 -from rotasat import agro, cache                                
+      10 -from rotasat.sources import power, srtm                        
+       9 +from rotasat import cache, climate                             
+      10 +from rotasat.sources import chirps, imerg, power               
+      11  
+      12 -# Lugar: (lat, lon, altitud SRTM, T media anual °C, días de hel
+         -ada/año) del Anexo B.1.                                        
+      12 +# Lugar: (lat, lon, altitud SRTM, fuente de lluvia, lluvia anua
+         +l mm, T media anual °C, días de helada/año) — B.1.             
+      13  B1 = {
+      14 -    "Ica — Valle (Pueblo Nuevo)": (-14.13, -75.7, 405, 21.8, 0)
+         -,                                                              
+      15 -    "Junín — Valle del Mantaro (Chupaca)": (-12.06, -75.29, 327
+         -2, 12.1, 4),                                                   
+      16 -    "Huancavelica — zona altoandina": (-12.79, -74.97, 3788, 9.
+         -1, 48),                                                        
+      17 -    "Ayacucho — Huamanga": (-13.16, -74.22, 2733, 14.9, 0),    
+      18 -    "Apurímac — Andahuaylas": (-13.66, -73.39, 2894, 14.2, 0), 
+      19 -    "Puno — Altiplano (Juliaca)": (-15.5, -70.13, 3832, 9.9, 10
+         -1),                                                            
+      20 -    "Junín — Selva central (Satipo)": (-11.25, -74.64, 623, 26.
+         -7, 0),                                                         
+      14 +    "Ica — Valle (Pueblo Nuevo)": (-14.13, -75.7, 405, climate.
+         +IMERG_RAIN, 49, 21.8, 0),                                      
+      15 +    "Junín — Valle del Mantaro (Chupaca)": (-12.06, -75.29, 327
+         +2, climate.CHIRPS_RAIN, 792, 12.1, 4),                         
+      16 +    "Huancavelica — zona altoandina": (-12.79, -74.97, 3788, cl
+         +imate.CHIRPS_RAIN, 902, 9.1, 48),                              
+      17 +    "Ayacucho — Huamanga": (-13.16, -74.22, 2733, climate.CHIRP
+         +S_RAIN, 642, 14.9, 0),                                         
+      18 +    "Apurímac — Andahuaylas": (-13.66, -73.39, 2894, climate.CH
+         +IRPS_RAIN, 907, 14.2, 0),                                      
+      19 +    "Puno — Altiplano (Juliaca)": (-15.5, -70.13, 3832, climate
+         +.CHIRPS_RAIN, 498, 9.9, 101),                                  
+      20 +    "Junín — Selva central (Satipo)": (-11.25, -74.64, 623, cli
+         +mate.CHIRPS_RAIN, 1582, 26.7, 0),                              
+      21  }
+      22  
+      23  
+      24  @pytest.fixture(autouse=True)
+      25  def project_cache(monkeypatch):
+      26      monkeypatch.delenv("ROTASAT_CACHE_DIR", raising=False)   # 
+          usa data/cache/ del proyecto
+      27 +    # Sin red: cualquier intento de consultar un servicio es un
+         + error.                                                        
+      28 +    monkeypatch.setattr("rotasat.sources.http.get_json", lambda
+         + *a, **k: pytest.fail("consultó la red"))                      
+      29  
+      30  
+      29 -def _cached(lat, lon) -> bool:                                 
+      31 +def _complete(lat, lon, source) -> bool:                       
+      32      p = {"lat": lat, "lon": lon}
+      31 -    return cache.has("srtm", p) and cache.has(                 
+      33 +    base = cache.has("srtm", p) and cache.has(                 
+      34          "power_daily", {**p, "start": "20050101", "end": "20241
+          231", "p": sorted(power.DAILY_PARAMS)})
+      35 +    rain = imerg.cached(lat, lon) if source == climate.IMERG_RA
+         +IN else chirps.cached(lat, lon)                                
+      36 +    return base and rain is not None                           
+      37  
+      38  
+      39 +@pytest.fixture(scope="module")                                
+      40 +def places():                                                  
+      41 +    return {}                                                  
+      42 +                                                               
+      43 +                                                               
+      44 +def _place(site):                                              
+      45 +    lat, lon, *_ , = B1[site]                                  
+      46 +    if not _complete(lat, lon, B1[site][3]):                   
+      47 +        pytest.skip("lugar no descargado por completo en data/c
+         +ache/")                                                        
+      48 +    return climate.build(lat, lon, start_download=False)       
+      49 +                                                               
+      50 +                                                               
+      51  @pytest.mark.parametrize("site", list(B1))
+      36 -def test_b1_climate(site, monkeypatch):                        
+      37 -    lat, lon, elev, t_mean, frost = B1[site]                   
+      38 -    if not _cached(lat, lon):                                  
+      39 -        pytest.skip("lugar no descargado en data/cache/")      
+      40 -    # Sin red: cualquier intento de consultar un servicio es un
+         - error.                                                        
+      41 -    monkeypatch.setattr("rotasat.sources.http.get_json", lambda
+         - *a, **k: pytest.fail("consultó la red"))                      
+      42 -    d = power.daily(lat, lon)                                  
+      43 -    e = srtm.elevation(lat, lon)                               
+      44 -    assert round(e) == elev                                    
+      45 -    corrected, _ = agro.correct_temperatures(power.daily_frame(
+         -d), d["elev_area"], e)                                         
+      46 -    clim, _ = agro.monthly_climate(corrected)                  
+      47 -    assert round(clim["t_media"].mean(), 1) == pytest.approx(t_
+         -mean, abs=1)                                                   
+      48 -    assert round(clim["dias_helada"].sum()) == pytest.approx(fr
+         -ost, abs=1)                                                    
+      49 -    # Con los mismos datos guardados la coincidencia es exacta 
+         -(Spec D3).                                                     
+      50 -    assert round(clim["t_media"].mean(), 1) == t_mean          
+      51 -    assert round(clim["dias_helada"].sum()) == frost           
+      52 +def test_b1_climate(site):                                     
+      53 +    lat, lon, elev, source, rain, t_mean, frost = B1[site]     
+      54 +    pc = _place(site)                                          
+      55 +    assert round(pc.elev) == elev                              
+      56 +    assert pc.rain_source == source and not pc.preliminary     
+      57 +    assert round(pc.clim["lluvia"].sum()) == rain              
+      58 +    assert round(pc.clim["t_media"].mean(), 1) == t_mean       
+      59 +    assert round(pc.clim["dias_helada"].sum()) == frost        
+
+● Update(tests\test_annex_b.py)
+  ⎿  Added 2 lines, removed 7 lines
+      36      return base and rain is not None
+      37  
+      38  
+      39 -@pytest.fixture(scope="module")                                
+      40 -def places():                                                  
+      41 -    return {}                                                  
+      42 -                                                               
+      43 -                                                               
+      39  def _place(site):
+      45 -    lat, lon, *_ , = B1[site]                                  
+      46 -    if not _complete(lat, lon, B1[site][3]):                   
+      40 +    lat, lon, _, source, *_ = B1[site]                         
+      41 +    if not _complete(lat, lon, source):                        
+      42          pytest.skip("lugar no descargado por completo en data/c
+          ache/")
+      43      return climate.build(lat, lon, start_download=False)
+      44  
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● 6 sites pass; Ica is skipped until the IMERG download finishes. Meanwhile I
+  record in Plan.md what was confirmed:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(specs\Plan.md)
+  ⎿  Added 2 lines, removed 2 lines
+      74  | Clima diario + altitud del área | NASA POWER | `GET https://p
+          ower.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,T2M_
+          MAX,T2M_MIN,PRECTOTCORR,TOA_SW_DWN&community=AG&latitude={lat}&
+          longitude={lon}&start=20050101&end=20241231&format=JSON`. La al
+          titud del área está en `geometry.coordinates[2]` y el valor `-9
+          99` significa que falta el dato |
+      75  | Humedad del suelo | NASA POWER | `.../temporal/monthly/point?
+          parameters=GWETTOP,GWETROOT&start=2005&end=2024` |
+      76  | Altitud SRTM | OpenTopoData (SRTM 90 m) | `GET https://api.op
+          entopodata.org/v1/srtm90m?locations=lat,lon\|...`: los 9 puntos
+           (RC-06) van en una sola llamada |
+      77 -| CHIRPS | SERVIR ClimateSERV | `submitDataRequest` (CHIRPS, op
+         -eración promedio, polígono pequeño alrededor del punto, 2005–20
+         -24), luego `getDataRequestProgress` y luego `getDataFromRequest
+         -`. Tiempo máximo 300 s |                                       
+      78 -| GPM IMERG | SERVIR ClimateSERV | Igual que CHIRPS, para 2015–
+         -2024. **Solo se lee de la caché** (Spec §10.2); `prefetch.py` l
+         -o descarga para Ica |                                          
+      77 +| CHIRPS | SERVIR ClimateSERV | `https://climateserv.servirglob
+         +al.net/api/submitDataRequest/?datatype=0&intervaltype=0&operati
+         +ontype=5&begintime=01/01/2005&endtime=12/31/2024&geometry={polí
+         +gono}`, luego `getDataRequestProgress/?id=` (hasta 100; −1 es e
+         +rror) y luego `getDataFromRequest/?id=`. El polígono es un cuad
+         +rado de **medio lado 0.025°** (un píxel CHIRPS). Tarda 60–80 s.
+         + Tiempo máximo 300 s |                                         
+      78 +| GPM IMERG | SERVIR ClimateSERV | Igual que CHIRPS con `dataty
+         +pe=26`, de 2015 a 2024, con un cuadrado de **medio lado 0.05°**
+         + (un píxel IMERG). Tarda unos 7 min. La serie termina el 2024-0
+         +6-01, pero igual se divide entre 10 años (es lo que reproduce e
+         +l Anexo B). **Solo se lee de la caché** (Spec §10.2); `prefetch
+         +.py` lo descarga para Ica |                                    
+      79  | NDVI | ORNL DAAC MODIS Web Service | `GET https://modis.ornl.
+          gov/rst/api/v1/MOD13Q1/subset?latitude=..&longitude=..&band=250
+          m_16_days_NDVI&startDate=A2023001&endDate=A2024366&kmAboveBelow
+          =0&kmLeftRight=0` (escala ×0.0001). Para VIIRS se usa `VNP13A1`
+           |
+      80  | Suelo | ISRIC SoilGrids v2 | `GET https://rest.isric.org/soil
+          grids/v2.0/properties/query?lon=..&lat=..&property=clay&propert
+          y=sand&property=phh2o&depth=0-5cm&depth=5-15cm&value=mean`. La 
+          arcilla y la arena vienen en g/kg (÷10 da %) y el pH viene ×10 
+          |
+      81  | Búsqueda y nombre | Nominatim (OSM) | `/search` con `countryc
+          odes=pe` y luego sin él, `limit=8`, `accept-language=es`; `/rev
+          erse`. Se envía un `User-Agent` genérico (`RotaSat/1.0`) y como
+           máximo una llamada por segundo |
+
+● Update(specs\Plan.md)
+  ⎿  Added 5 lines, removed 1 line
+      81  | Búsqueda y nombre | Nominatim (OSM) | `/search` con `countryc
+          odes=pe` y luego sin él, `limit=8`, `accept-language=es`; `/rev
+          erse`. Se envía un `User-Agent` genérico (`RotaSat/1.0`) y como
+           máximo una llamada por segundo |
+      82  | Mapa | Esri | Teselas `World_Imagery` y la capa `Reference/Wo
+          rld_Boundaries_and_Places` |
+      83  
+      84 -Los identificadores exactos de los conjuntos de datos de Climat
+         -eSERV para CHIRPS e IMERG se confirman en la tarea T07.        
+      84 +**Calibración de la lluvia (T07).** El Spec no fija el área que
+         + se promedia. Se probaron varios tamaños contra la lluvia      
+      85 +anual del Anexo B.1. Un píxel nativo de cada producto reproduce
+         + los 7 lugares exactamente: CHIRPS (0.025) da Chupaca 792,     
+      86 +Huancavelica 902, Huamanga 642, Andahuaylas 907, Juliaca 498 y 
+         +Satipo 1582; IMERG (0.05) da Ica 49. Con 0.001 y 0.01 en       
+      87 +CHIRPS, o con 0.025 en IMERG, salen números distintos. ClimateS
+         +ERV responde 503 si recibe muchos pedidos a la vez:            
+      88 +los pedidos se hacen de uno en uno.                            
+      89  
+      90  ## 5. Caché (RNF-02)
+      91  
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● Update(CLAUDE.md)
+  ⎿  Added 3 lines, removed 1 line
+      20  
+      21  ### External data
+      22  
+      23 -Every external call goes through `rotasat.cache.get_or_fetch(se
+         -rvice, params, fetch)`, which stores one JSON file per response
+         - in `data/cache/{service}/{sha1}.json`. Float parameters are ro
+         -unded to 4 decimals before the key is built. Writes are atomic,
+         - and nothing is cached when a fetch fails. Any failure surfaces
+         - as `rotasat.cache.SourceError` (with `.service` and `.error_na
+         -me`), which the UI turns into an Annex C message. HTTP requests
+         - use `rotasat.sources.http.get_json`, which sets a timeout and 
+         -a generic `RotaSat/1.0` User-Agent. Tests isolate the cache by 
+         -setting `ROTASAT_CACHE_DIR` to a temporary folder, and they nev
+         -er touch the network.                                          
+      23 +Every external call goes through `rotasat.cache.get_or_fetch(se
+         +rvice, params, fetch)`, which stores one JSON file per response
+         + in `data/cache/{service}/{sha1}.json`. Float parameters are ro
+         +unded to 4 decimals before the key is built. Writes are atomic,
+         + and nothing is cached when a fetch fails. Any failure surfaces
+         + as `rotasat.cache.SourceError` (with `.service` and `.error_na
+         +me`), which the UI turns into an Annex C message. HTTP requests
+         + use `rotasat.sources.http.get_json`, which sets a timeout and 
+         +a generic `RotaSat/1.0` User-Agent. Tests isolate the cache by 
+         +setting `ROTASAT_CACHE_DIR` to a temporary folder, and they nev
+         +er touch the network. The exception is `tests/test_annex_b.py`,
+         + which reads the real `data/cache/` offline and skips any site 
+         +that hasn't been downloaded.                                   
+      24  
+      25 +`rotasat/climate.py` is the bridge between the sources (network
+         + or cache) and the pure engine in `agro.py`: `climate.build(lat
+         +, lon)` returns a `PlaceClimate`. Rainfall comes from NASA SERV
+         +IR ClimateSERV, using CHIRPS (`datatype=0`) or IMERG (`datatype
+         +=26`). Each source averages a square exactly one native pixel w
+         +ide (half-side 0.025° for CHIRPS, 0.05° for IMERG). These sizes
+         + were calibrated so that Annex B.1 is reproduced exactly; don't
+         + change them (see `specs/Plan.md` §4). ClimateSERV returns 503 
+         +under parallel load, so send its requests one at a time. A CHIR
+         +PS download takes about 70 s per site and IMERG takes about 7 m
+         +in.                                                            
+      26 +                                                               
+      27  ### Texts (i18n)
+      28  
+      29  Every visible string goes through `rotasat.i18n.t(spanish_text,
+           lang, **fields)`, keyed by the **exact Spanish text from Annex
+           C**. An unknown key raises `KeyError`, so a string that isn't 
+          in the annex can't reach the UI. Annex C placeholders were Pyth
+          on expressions from the reference code; `scripts/build_texts.py
+          ` (`PLACEHOLDERS`) renames them to field names (`{ctx['elev']:,
+          .0f}` becomes `{elev:,.0f}`). `rotasat/texts_data.py` is genera
+          ted, so never hand-edit it. If Annex C changes, run `.venv/Scri
+          pts/python scripts/build_texts.py`; a test fails when the gener
+          ated file is stale. Domain vocabulary (regions, textures, month
+          s, form options) is available through `vocab()`, `options()` an
+          d `month()`.
+
+● I'll wait for the IMERG download to finish to validate Ica.
+
+✻ Cogitated for 2m 7s · done 12:10 PM
+
+❯ Sigue con la T08                                                              
+
+● I'll check whether the IMERG download for Ica already finished:
+
+  Listed 1 directory (ctrl+o to expand)
+
+● It's still downloading (it takes about 7 min). In the meantime I move on with
+  T08 in agro.py:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All 7 sites match Annex B.1 in slope (%), slope class and region. Now the
+  tests:
+  Ran 2 shell commands (ctrl+o to expand)
+
+● T08 está terminada: la pendiente, la región y los valores por defecto (RC-06 y
+  RC-07) ya se calculan, y las 383 pruebas pasan. Coinciden con el Anexo B.1 en
+  los 7 lugares:
+
+  ┌──────────────┬────────────────┬──────────┬──────────────┐
+  │    Lugar     │   Pendiente    │  Clase   │    Región    │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Ica          │ 0.46 % → 0 ✓   │ plano ✓  │ costa ✓      │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Chupaca      │ 15.16 % → 15 ✓ │ ladera ✓ │ sierra ✓     │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Huancavelica │ 64.36 % → 64 ✓ │ ladera ✓ │ altoandina ✓ │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Huamanga     │ 7.74 % → 8 ✓   │ suave ✓  │ sierra ✓     │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Andahuaylas  │ 28.46 % → 28 ✓ │ ladera ✓ │ sierra ✓     │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Juliaca      │ 2.93 % → 3 ✓   │ plano ✓  │ altoandina ✓ │
+  ├──────────────┼────────────────┼──────────┼──────────────┤
+  │ Satipo       │ 1.87 % → 2 ✓   │ plano ✓  │ selva ✓      │
+  └──────────────┴────────────────┴──────────┴──────────────┘
+
+  Juliaca confirma un detalle del Anexo B: muestra «3 % (plano)» porque la
+  pendiente real es 2.93 %, menor que el límite de 3 %.
+
+  Lo que se agregó en rotasat/agro.py:
+  - Pendiente y región (RC-06):
+    - La pendiente se calcula con la cuadrícula de 3 × 3 puntos de SRTM. Si
+      falta algún punto vecino no hay dato y la clase queda en «suave».
+    - Clases: plano (< 3 %), suave (< 12 %) y ladera.
+    - La región se decide por la altitud real y, si falta, por la del área. Se
+      usa la lluvia de la tabla después del cambio a CHIRPS o IMERG.
+  - Valores por defecto (RC-07):
+    - El riego y la sal dependen de la región; en la costa son «limitada» y
+      «media».
+    - Las 7 prioridades.
+    - La rotación típica de cada región.
+  - Lo que cambia el usuario («Mis datos»):
+    - Siempre manda sobre lo detectado.
+    - Si cambia la región, el riego y la sal pasan a los de la nueva región,
+      salvo los que ya cambió él.
+    - Su textura y su pH mandan sobre la estimación del satélite, y queda
+      anotado si el suelo vino del satélite (para la lista de vacíos de
+      información, RC-13).
+
+  Una decisión mía, que el Spec no fija: si el usuario cambia la región, la
+  rotación actual por defecto también pasa a la típica de la nueva región, salvo
+  que él ya la haya editado. Dígame si prefiere que quede fija en la de la
+  región detectada.
+
+  Pruebas:
+  - tests/test_place_inputs.py: revisa la fórmula de la pendiente, los límites
+    de cada clase y de cada región, los valores por defecto, el cambio de región
+    y quién manda sobre el suelo.
+  - tests/test_annex_b.py: ahora también compara pendiente, clase y región.
+    Pasan 6 lugares. Ica está en pausa porque la nueva descarga de IMERG todavía
+    no termina; la anterior se hizo con un tamaño de área equivocado y la
+    borré.
+
+  Marqué T08 como hecha en task.md.
+
+  La siguiente es T09: la aptitud de los 17 cultivos y la tabla del lugar (RC-08
+  y RC-09). Ahí se comprueba si la hipótesis del desempate entre cultivos
+  (D-RC09) reproduce el orden del Anexo B.2. ¿Sigo?
+
+✻ Crunched for 2m 14s · done 12:15 PM
+
+● Background command "Download and cache IMERG for Ica with 0.05 half-side"
+completed (exit code 0)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● La descarga de IMERG para Ica terminó: da 48.68 → 49 mm al año, igual que el
+  Anexo B.1. Con eso, las pruebas del Anexo B pasan en los 7 lugares, sin
+  conexión a internet: altitud, pendiente, región, fuente de lluvia, lluvia
+  anual, temperatura media y heladas.
+
+  Ya están guardados en data/cache/ todos los datos de clima y lluvia de los 7
+  lugares de ejemplo.
+
+  La siguiente es T09: la aptitud de los cultivos y la comprobación del
+  desempate contra el Anexo B.2. ¿Sigo?
+
+✻ Baked for 11s · done 12:16 PM
+
+❯ Sigue con la T09                                                              
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Before writing the aptitude code I check the limiting-factor texts in Annex C,
+  because their wording decides how each factor is reported. Now the engine:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The command failed in the shell before running (a quoting problem in the
+  heredoc). I'll check whether agro.py was modified:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Unchanged. I'll append with the editor instead of the shell:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(rotasat\agro.py)
+  ⎿  Added 181 lines
+      237          rotation=tuple(tuple(step) for step in o.get("rotation
+           ", DEFAULT_ROTATION[region])),
+      238          soil_from_satellite=from_sat,
+      239      )
+      240 +                                                              
+      241 +                                                              
+      242 +# --- RC-08 Aptitud de un cultivo sembrado en un mes ---------
+          +------------------------------------------------------        
+      243 +                                                              
+      244 +FROST_K = 0.06                  # f_helada = e^(−0.06 × exposi
+          +ción)                                                         
+      245 +WATER_MIN_FACTOR = 0.3          # sin riego: f_agua nunca baja
+          + de 0.3                                                       
+      246 +WATER_FULL_COVER = 0.5          # sin riego: con cobertura ≥ 0
+          +.5, f_agua = 1                                                
+      247 +IRRIGATION_REF_MM = 900         # con riego: el castigo es com
+          +pleto a partir de 900 mm                                      
+      248 +IRRIGATION_PENALTY = {"limitada": 0.45, "suficiente": 0.12}   
+      249 +LIMITED_HIGH_KC = 0.9           # con agua limitada y Kc > 0.9
+          +, f_agua × 0.55                                               
+      250 +LIMITED_HIGH_KC_FACTOR = 0.55                                 
+      251 +SALT_K = 0.8                                                  
+      252 +PH_NEAR = 0.5                                                 
+      253 +FACTOR_ORDER = ("temp", "helada", "agua", "sal", "textura", "p
+          +h")  # orden de desempate del factor limitante                
+      254 +NO_LIMIT_THRESHOLD = 0.85                                     
+      255 +FALLOW_APTITUDE = 70            # RC-10: «Descanso» vale 70   
+      256 +                                                              
+      257 +                                                              
+      258 +def cycle_months(sow_month: int, months: int) -> list[int]:   
+      259 +    """Meses del ciclo, empezando en el de siembra y dando la 
+          +vuelta al año."""                                             
+      260 +    return [(sow_month - 1 + i) % 12 + 1 for i in range(months
+          +)]                                                            
+      261 +                                                              
+      262 +                                                              
+      263 +def effective_rain(p: float) -> float:                        
+      264 +    """Lluvia aprovechable de un mes con lluvia p (mm)."""    
+      265 +    return max(0.0, 0.6 * p - 10) if p <= 70 else 0.8 * p - 24
+      266 +                                                              
+      267 +                                                              
+      268 +def _temp_score(t: float, opt: tuple, lim: tuple) -> float:   
+      269 +    o1, o2 = opt                                              
+      270 +    l1, l2 = lim                                              
+      271 +    if o1 <= t <= o2:                                         
+      272 +        return 1.0                                            
+      273 +    if t < o1:                                                
+      274 +        return max(0.0, (t - l1) / (o1 - l1))                 
+      275 +    return max(0.0, (l2 - t) / (l2 - o2))                     
+      276 +                                                              
+      277 +                                                              
+      278 +def _texture_factor(texture: str | None, preferred: tuple) -> 
+          +float:                                                        
+      279 +    from .crops import TEXTURES                               
+      280 +    if texture is None or not preferred or texture in preferre
+          +d:                                                            
+      281 +        return 1.0                                            
+      282 +    i = TEXTURES.index(texture)                               
+      283 +    distance = min(abs(i - TEXTURES.index(p)) for p in preferr
+          +ed)                                                           
+      284 +    return 0.75 if distance == 1 else 0.5                     
+      285 +                                                              
+      286 +                                                              
+      287 +def _ph_factor(ph: float | None, rng: tuple) -> float:        
+      288 +    if ph is None:                                            
+      289 +        return 1.0                                            
+      290 +    lo, hi = rng                                              
+      291 +    if lo <= ph <= hi:                                        
+      292 +        return 1.0                                            
+      293 +    out = lo - ph if ph < lo else ph - hi                     
+      294 +    return 0.75 if out <= PH_NEAR else 0.5                    
+      295 +                                                              
+      296 +                                                              
+      297 +def crop_suitability(crop, sow_month: int, clim: pd.DataFrame,
+          + inputs: FarmInputs) -> dict:                                 
+      298 +    """RC-08: aptitud (0–100) y sus seis factores para `crop` 
+          +sembrado en `sow_month`."""                                   
+      299 +    months = cycle_months(sow_month, crop.months)             
+      300 +    c = clim.loc[months]                                      
+      301 +                                                              
+      302 +    temps = [_temp_score(t, crop.t_opt, crop.t_lim) for t in c
+          +["t_media"]]                                                  
+      303 +    f_temp = 0.6 * (sum(temps) / len(temps)) + 0.4 * min(temps
+          +)                                                             
+      304 +                                                              
+      305 +    expo = float(((c["dias_helada"] + 2 * c["dias_helada_fuert
+          +e"]) * crop.frost_sens).sum())                                
+      306 +    f_frost = float(np.exp(-FROST_K * expo))                  
+      307 +                                                              
+      308 +    demand = c["et0"] * crop.kc                               
+      309 +    eff = c["lluvia"].map(effective_rain)                     
+      310 +    need = float(demand.sum())                                
+      311 +    covered = float(np.minimum(eff, demand).sum())            
+      312 +    coverage = covered / need if need > 0 else 1.0            
+      313 +    irrigation_mm = max(0.0, need - covered)                  
+      314 +    if inputs.irrigation == "no":                             
+      315 +        f_water = min(1.0, max(WATER_MIN_FACTOR, coverage / WA
+          +TER_FULL_COVER))                                              
+      316 +    else:                                                     
+      317 +        f_water = 1 - IRRIGATION_PENALTY[inputs.irrigation] * 
+          +min(1.0, irrigation_mm / IRRIGATION_REF_MM)                   
+      318 +        if inputs.irrigation == "limitada" and crop.kc > LIMIT
+          +ED_HIGH_KC:                                                   
+      319 +            f_water *= LIMITED_HIGH_KC_FACTOR                 
+      320 +                                                              
+      321 +    f_salt = 1 - SALT_K * inputs.salt_level * (1 - crop.salt_t
+          +ol)                                                           
+      322 +    f_texture = _texture_factor(inputs.texture, crop.textures)
+      323 +    f_ph = _ph_factor(inputs.ph, crop.ph)                     
+      324 +                                                              
+      325 +    factors = {"temp": f_temp, "helada": f_frost, "agua": f_wa
+          +ter, "sal": f_salt, "textura": f_texture, "ph": f_ph}         
+      326 +    return {                                                  
+      327 +        "aptitud": 100 * float(np.prod(list(factors.values()))
+          +),                                                            
+      328 +        "factors": factors,                                   
+      329 +        "lluvia_cubre": coverage,                             
+      330 +        "riego_mm": irrigation_mm,                            
+      331 +        "riego_m3ha": irrigation_mm * 10,                     
+      332 +        "expo_helada": expo,                                  
+      333 +        "t_min_ciclo": float(c["t_media"].min()),             
+      334 +        "t_max_ciclo": float(c["t_media"].max()),             
+      335 +    }                                                         
+      336 +                                                              
+      337 +                                                              
+      338 +def limiting_factor(crop, r: dict, inputs: FarmInputs) -> tupl
+          +e[str, dict]:                                                 
+      339 +    """RC-09: el factor más bajo como (texto ES del Anexo C, c
+          +ampos). El texto se traduce con i18n.t()."""                  
+      340 +    name = min(FACTOR_ORDER, key=lambda k: r["factors"][k])   
+          +# min() se queda con el primero en un empate                  
+      341 +    if r["factors"][name] >= NO_LIMIT_THRESHOLD:              
+      342 +        return "Sin limitaciones importantes", {}             
+      343 +    if name == "temp":                                        
+      344 +        o0, o1 = crop.t_opt                                   
+      345 +        if r["t_min_ciclo"] < o0:                             
+      346 +            return ("Muy frío para este cultivo (media {t:.0f}
+          + °C; prefiere {o0}–{o1} °C)",                                 
+      347 +                    {"t": r["t_min_ciclo"], "o0": o0, "o1": o1
+          +})                                                            
+      348 +        return "Muy caluroso (media {t:.0f} °C; prefiere {o0}–
+          +{o1} °C)", {"t": r["t_max_ciclo"], "o0": o0, "o1": o1}        
+      349 +    if name == "helada":                                      
+      350 +        return "Riesgo de heladas durante la campaña ({expo:.0
+          +f} puntos de exposición)", {"expo": r["expo_helada"]}         
+      351 +    if name == "agua":                                        
+      352 +        if inputs.irrigation == "no":                         
+      353 +            return ("La lluvia solo cubre {pct:.0f}% de lo que
+          + necesita: requiere riego",                                   
+      354 +                    {"pct": r["lluvia_cubre"] * 100})         
+      355 +        return "Necesita mucha agua de riego (~{riego:,.0f} m³
+          +/ha)", {"riego": r["riego_m3ha"]}                             
+      356 +    if name == "sal":                                         
+      357 +        return "Poco tolerante a la sal", {}                  
+      358 +    if name == "textura":                                     
+      359 +        return "Prefiere suelos {texturas}", {"texturas": crop
+          +.textures}   # la interfaz traduce y une con ', '             
+      360 +    return "Prefiere pH {ph_min}–{ph_max}", {"ph_min": crop.ph
+          +[0], "ph_max": crop.ph[1]}                                    
+      361 +                                                              
+      362 +                                                              
+      363 +# --- RC-09 Tabla de aptitud del lugar -----------------------
+          +-----------------------------------------------------         
+      364 +                                                              
+      365 +LEVEL_SUITABLE, LEVEL_CARE = 65, 40                           
+      366 +LEVELS = ("🟢 Apto", "🟡 Con cuidado", "🔴 No recomendado")   
+          +# textos ES del Anexo C                                       
+      367 +COVERAGE_CAP = 1.5                                            
+      368 +                                                              
+      369 +                                                              
+      370 +def level(aptitude: float) -> str:                            
+      371 +    """Nivel con la aptitud SIN redondear: ≥ 65 Apto; ≥ 40 Con
+          + cuidado; si no, No recomendado."""                           
+      372 +    if aptitude >= LEVEL_SUITABLE:                            
+      373 +        return LEVELS[0]                                      
+      374 +    if aptitude >= LEVEL_CARE:                                
+      375 +        return LEVELS[1]                                      
+      376 +    return LEVELS[2]                                          
+      377 +                                                              
+      378 +                                                              
+      379 +def best_sowing(crop, clim: pd.DataFrame, inputs: FarmInputs) 
+          +-> tuple[int, dict]:                                          
+      380 +    """Mejor mes de siembra: mayor aptitud redondeada; luego m
+          +ayor cobertura (tope 1.5, 2 decimales); luego menor           
+      381 +    exposición a heladas. En empate total gana el mes más temp
+          +rano del año."""                                              
+      382 +    best_month, best, best_key = None, None, None             
+      383 +    for m in range(1, 13):                                    
+      384 +        r = crop_suitability(crop, m, clim, inputs)           
+      385 +        key = (round(r["aptitud"]), round(min(r["lluvia_cubre"
+          +], COVERAGE_CAP), 2), -r["expo_helada"])                      
+      386 +        if best_key is None or key > best_key:                
+      387 +            best_month, best, best_key = m, r, key            
+      388 +    return best_month, best                                   
+      389 +                                                              
+      390 +                                                              
+      391 +def suitability_table(clim: pd.DataFrame, inputs: FarmInputs) 
+          +-> pd.DataFrame:                                              
+      392 +    """RC-09: una fila por cultivo (los 17, sin «Descanso»), o
+          +rdenada por aptitud redondeada de mayor a menor.              
+      393 +                                                              
+      394 +    Desempate D-RC09 (Plan.md §6): se arma el DataFrame en el 
+          +orden del Anexo A y se ordena con                             
+      395 +    `sort_values(ascending=False)` y el método por defecto de 
+          +pandas (no estable), como el original.                        
+      396 +    """                                                       
+      397 +    from .crops import FIELD_CROPS                            
+      398 +    rows = []                                                 
+      399 +    for crop in FIELD_CROPS:                                  
+      400 +        m, r = best_sowing(crop, clim, inputs)                
+      401 +        rows.append({                                         
+      402 +            "id": crop.id,                                    
+      403 +            "aptitud": round(r["aptitud"]),                   
+      404 +            "aptitud_raw": r["aptitud"],                      
+      405 +            "nivel": level(r["aptitud"]),                     
+      406 +            "mes": m,                                         
+      407 +            "meses": crop.months,                             
+      408 +            "lluvia_cubre": min(r["lluvia_cubre"], 1) * 100,  
+      409 +            "riego_m3ha": round(r["riego_m3ha"], -1),         
+      410 +            "limitante": limiting_factor(crop, r, inputs),    
+      411 +            "expo_helada": r["expo_helada"],                  
+      412 +            "factors": r["factors"],                          
+      413 +        })                                                    
+      414 +    df = pd.DataFrame(rows)                                   
+      415 +    return df.sort_values("aptitud", ascending=False).reset_in
+          +dex(drop=True)                                                
+      416 +                                                              
+      417 +                                                              
+      418 +def level_counts(table: pd.DataFrame) -> tuple[int, int, int]:
+      419 +    """Contadores de «Qué sembrar» (RF-31.2): (aptos, con cuid
+          +ado, no recomendados)."""                                     
+      420 +    return tuple(int((table["nivel"] == lv).sum()) for lv in L
+          +EVELS)                                                        
+
+  Made 1 scratchpad edit +26, ran 1 shell command (ctrl+o to expand)
+
+● The D-RC09 hypothesis holds: the top 5, tie order included, match at all 7
+  sites, and the only gap is Ica's counters (3/10/4 vs 3/11/3), with one crop on
+  the wrong side of 40. I'm pulling Ica's full table next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Tarwi in Ica sits at 39.97, so the Spec's unrounded rule (RC-09) marks it «No
+  recomendado» while Annex B calls it «Con cuidado». I'm checking whether other
+  sites near a boundary explain all 7 cases. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● With the rounded value, all 7 sites match Annex B, but the unrounded value,
+  which the Spec text calls for, does not. I'm checking CA-05 and the tie order
+  before asking you which rule to use. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● CA-05 pasa: con «Sí, agua suficiente», la quinoa sube de 76 a 89 y su factor
+  limitante pasa a «Sin limitaciones importantes». Necesito tu decisión sobre
+  cómo asignar los niveles antes de escribir las pruebas. · summary
+
+● User answered Claude's questions:
+  ⎿  · En Ica la aptitud del tarwi da 39.97. Spec RC-09 asigna el nivel con el 
+     valor sin redondear, y así queda «No recomendado»: contadores 3/10/4. El 
+     Anexo B.1 en cambio dice 3/11/3, lo que solo sale si el nivel usa la 
+     aptitud redondeada (40, «Con cuidado»). En los otros 6 lugares las dos 
+     reglas dan lo mismo. ¿Qué regla uso? → Redondeada, como el Anexo B 
+     (Recomendado)
+
+● Using the rounded value. I apply the change to the code, the Spec and the
+  Plan:
+
+● Update(rotasat\agro.py)
+  ⎿  Added 2 lines, removed 1 line
+      368  
+      369  
+      370  def level(aptitude: float) -> str:
+      371 -    """Nivel con la aptitud SIN redondear: ≥ 65 Apto; ≥ 40 Con
+          - cuidado; si no, No recomendado."""                           
+      371 +    """Nivel: ≥ 65 Apto; ≥ 40 Con cuidado; si no, No recomenda
+          +do. Se llama con la aptitud REDONDEADA al entero              
+      372 +    (decisión D-RC09b, Plan.md §6: es lo que reproduce el Anex
+          +o B.1; en Ica el tarwi da 39.97 → 40 «Con cuidado»)."""       
+      373      if aptitude >= LEVEL_SUITABLE:
+      374          return LEVELS[0]
+      375      if aptitude >= LEVEL_CARE:
+
+● Update(rotasat\agro.py)
+  ⎿  Added 1 line, removed 1 line
+      403              "id": crop.id,
+      404              "aptitud": round(r["aptitud"]),
+      405              "aptitud_raw": r["aptitud"],
+      406 -            "nivel": level(r["aptitud"]),                     
+      406 +            "nivel": level(round(r["aptitud"])),              
+      407              "mes": m,
+      408              "meses": crop.months,
+      409              "lluvia_cubre": min(r["lluvia_cubre"], 1) * 100,
+
+● Update(specs\Spec.md)
+  ⎿  Added 3 lines, removed 1 line
+      292  Para cada uno de los 17 cultivos (todos menos «Descanso»):
+      293  - Se prueba la siembra en los 12 meses y se elige el mejor com
+           parando, en este orden: aptitud redondeada al entero;
+      294    cobertura de lluvia (tope 1.5, redondeada a 2 decimales); me
+           nor exposición a heladas. En empate total gana el mes más temp
+           rano del año.
+      295 -- **Nivel:** aptitud ≥ 65 «Apto»; ≥ 40 «Con cuidado»; menor «N
+          -o recomendado» (con el valor sin redondear).                  
+      295 +- **Nivel:** aptitud ≥ 65 «Apto»; ≥ 40 «Con cuidado»; menor «N
+          +o recomendado», con la aptitud **redondeada al entero**       
+      296 +  (corregido en la v1.0: el texto anterior decía «sin redondea
+          +r», pero el Anexo B.1 de Ica solo se reproduce con el valor   
+      297 +  redondeado; ver `Plan.md` D-RC09b).                         
+      298  - **Factor limitante:** el factor más bajo de RC-08 (en empate
+           , el primero en el orden temperatura, heladas, agua, sal,
+      299    textura, pH). Si es 0.85 o más: «Sin limitaciones importante
+           s». Si no, el motivo correspondiente (Anexo C).
+      300  - Se muestran: aptitud redondeada, mejor mes, ciclo en meses, 
+           riego necesario redondeado a la decena, y
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(specs\Plan.md)
+  ⎿  Added 12 lines, removed 3 lines
+      101  - **D-RC09 · Desempates en la tabla de aptitud.** El Spec deja
+            que este Plan fije el orden. Hipótesis: el original arma un
+      102    `DataFrame` con los cultivos en el orden del Anexo A y llama
+            a `sort_values("aptitud", ascending=False)` con el método de
+      103    ordenación por defecto de pandas, que **no es estable**. Eso
+            explica que en el Anexo B.2 de Chupaca salga primero la papa 
+           y
+      104 -  no la quinua. En la tarea T09 se comprueba esta hipótesis co
+          -ntra los 7 lugares del B.2. Si falla, se prueban otras variant
+          -es                                                            
+      105 -  (`kind`, orden de entrada) hasta reproducir el B.2 exacto, y
+          - aquí se anota cuál quedó.                                    
+      106 -- **Mejor mes (RC-09):** se ordena por la tupla `(-round(aptit
+          -ud), -round(min(cobertura,1.5),2), exposición_helada, mes)`.  
+      104 +  no la quinua. **Confirmada en T09:** reproduce el top 5 del 
+          +B.2 en los 7 lugares, incluidos todos los empates a 100.      
+      105 +  Con `kind="stable"` el orden no coincide. La columna que se 
+          +ordena es la aptitud redondeada (entero).                     
+      106 +- **D-RC09b · Nivel con la aptitud redondeada.** El texto orig
+          +inal de RC-09 decía «sin redondear», pero en Ica el tarwi da  
+      107 +  39.97. Sin redondear queda «No recomendado» y los contadores
+          + dan 3/10/4; el Anexo B.1 dice 3/11/3. Con la aptitud redondea
+          +da                                                            
+      108 +  (40, «Con cuidado») coinciden los 7 lugares, y en los otros 
+          +6 las dos reglas dan lo mismo. Se aprobó usar el valor redonde
+          +ado                                                           
+      109 +  y se corrigió el Spec.                                      
+      110 +- **Mejor mes (RC-09):** de enero a diciembre, se queda el mes
+          + con la mayor tupla                                           
+      111 +  `(round(aptitud), round(min(cobertura, 1.5), 2), −exposición
+          +_helada)`; solo se reemplaza si es estrictamente mayor,       
+      112 +  así en un empate total gana el mes más temprano.            
+      113 +- **Factor limitante por temperatura:** «Muy frío» si la tempe
+          +ratura media más baja del ciclo es menor que el óptimo        
+      114 +  inferior; si no, «Muy caluroso». Agua: sin riego se usa el t
+          +exto de «La lluvia solo cubre…»; con riego, «Necesita mucha   
+      115 +  agua de riego…».                                            
+      116  - **Panel lateral (RF-20):** se usa `st.dialog(width="large")`
+            con CSS que lo fija a la derecha, con 640 px de ancho y 100 %
+      117    en pantallas angostas. Streamlit ya lo cierra con Esc, con l
+           a ✕ y con un clic fuera. Solo se abre uno a la vez.
+      118  - **Idioma:** se guarda en `st.session_state.lang`. Los textos
+            se piden con `t(clave)` y **nunca** se escriben sueltos en la
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All 7 sites now match B.1 (counters) and B.2 (top 5 with ties). Now the tests:
+
+● Write(tests\test_suitability.py)  ⎿  Wrote 149 lines to tests\test_suitability.py
+      1 """T09: aptitud de un cultivo (RC-08) y tabla de aptitud del luga
+        r (RC-09), con climas sintéticos. Sin red."""
+      2 import math
+      3 
+      4 import pandas as pd
+      5 import pytest
+      6 
+      7 from rotasat import agro, i18n
+      8 from rotasat.agro import Detected, resolve_inputs
+      9 from rotasat.crops import FIELD_CROPS, get
+     … +140 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● A test bug (the synthetic table was being built with integers). I fix the
+  helper:
+
+● Update(tests\test_suitability.py)
+  ⎿  Added 2 lines, removed 1 line
+      12  def clim(t=15.0, rain=100.0, et0=100.0, frost=0.0, hard=0.0, **
+          per_month):
+      13      """Tabla de clima de 12 meses constante; `per_month` cambia
+           columnas mes a mes: {'t_media': {1: 30, ...}}."""
+      14      df = pd.DataFrame({"lluvia": rain, "et0": et0, "t_media": t
+          , "t_max": t + 5, "t_min": t - 5,
+      15 -                       "dias_helada": frost, "dias_helada_fuert
+         -e": hard, "dias_calor": 0.0}, index=range(1, 13))              
+      15 +                       "dias_helada": frost, "dias_helada_fuert
+         +e": hard, "dias_calor": 0.0}, index=range(1, 13),              
+      16 +                      dtype="float64")                         
+      17      for col, values in per_month.items():
+      18          for m, v in values.items():
+      19              df.loc[m, col] = v
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● T09 está terminada: la aptitud de los cultivos y la tabla del lugar ya
+  coinciden con el Anexo B.1 y B.2 en los 7 lugares, y las 411 pruebas pasan.
+
+  Resultados contra el Anexo B:
+  - Contadores 🟢/🟡/🔴 (B.1): coinciden en los 7 lugares. En Ica dan 3/11/3,
+    gracias a su decisión de asignar el nivel con la aptitud redondeada.
+  - Los 5 cultivos más aptos (B.2): coinciden en los 7 lugares en nombre,
+    aptitud, mejor mes y orden. Eso incluye los empates a 100 de Chupaca,
+    Huamanga, Andahuaylas y Satipo.
+  - Desempate D-RC09: queda confirmado. El original ordenaba la tabla con pandas
+    sin conservar el orden del Anexo A. Si se conserva ese orden, ya no
+    coincide (Ica funciona igual de las dos maneras; los empates a 100 de los
+    otros lugares no).
+  - CA-05: en Ica, con «Sí, agua suficiente», la quinua sube de 76 a 89 y queda
+    «Sin limitaciones importantes».
+
+  Lo que se agregó en rotasat/agro.py:
+  - Aptitud (RC-08): los seis factores (temperatura, heladas, agua con y sin
+    riego, sal, textura y pH) y su producto. Los meses del ciclo dan la vuelta
+    al año.
+  - Factor limitante:
+    - Se elige el factor más bajo y, en un empate, gana el primero de la lista
+      de la regla.
+    - Si ese factor vale 0.85 o más, el motivo es «Sin limitaciones
+      importantes».
+    - Se usan los textos del Anexo C.
+    - Mi interpretación: «Muy frío» si el mes más frío del ciclo está por debajo
+      del óptimo; si no, «Muy caluroso». Para el agua, el texto depende de si
+      hay riego. Lo dejé anotado en el Plan.
+  - Tabla del lugar (RC-09):
+    - el mejor mes de siembra, con la regla de desempate y el mes más temprano
+      en un empate total;
+    - el nivel con la aptitud redondeada;
+    - el riego redondeado a la decena y la «lluvia cubre»;
+    - los contadores de nivel.
+
+  Su decisión sobre el nivel (D-RC09b): quedó aplicada en el código. También
+  corregí el texto de RC-09 en Spec.md y la anoté en Plan.md, junto con la
+  confirmación de D-RC09.
+
+  Pruebas:
+  - tests/test_suitability.py: usa climas inventados para revisar cada factor
+    por separado, el mejor mes, los niveles, los textos del factor limitante y
+    la forma de la tabla.
+  - tests/test_annex_b.py: ahora también compara los contadores, el top 5 del
+    B.2 y CA-05, sin internet.
+
+  Marqué T09 como hecha en task.md y anoté las dos decisiones en CLAUDE.md.
+
+  La siguiente es T10: la evaluación de rotaciones en la línea de 36 meses y sus
+  puntajes (RC-10 y RC-11). ¿Sigo?
+
+✻ Worked for 5m 9s · done 12:28 PM
