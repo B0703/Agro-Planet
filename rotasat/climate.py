@@ -73,3 +73,10 @@ def build(lat: float, lon: float, *, start_download: bool = True) -> PlaceClimat
 
     return PlaceClimate(clim=clim, rain_power=rain_power, p90=p90, correction=corr, elev=terrain["elev"],
                         elev_area=daily["elev_area"], terrain=terrain, rain_source=source, rain_status=status)
+
+
+def detect(pc: PlaceClimate, lat: float) -> agro.Detected:
+    """RC-06 para un lugar: región (con la lluvia de la tabla, ya reemplazada por RC-04) y pendiente."""
+    pct = agro.slope_pct(pc.terrain["grid"], lat)
+    region = agro.detect_region(pc.elev, pc.elev_area, float(pc.clim["lluvia"].sum()))
+    return agro.Detected(region=region, slope_pct=pct, slope_class=agro.slope_class(pct))

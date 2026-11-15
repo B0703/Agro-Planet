@@ -111,3 +111,129 @@ def monthly_climate(daily: pd.DataFrame) -> tuple[pd.DataFrame, float]:
     clim = pd.concat([sums, means], axis=1).reindex(range(1, 13))[list(CLIMATE_COLS)]
     clim.index.name = "mes"
     return clim, p90
+
+
+# --- RC-06 Pendiente y región ------------------------------------------------------------------------------------
+
+SLOPE_STEP = 0.001              # grados entre puntos de la cuadrícula SRTM
+M_PER_DEG_LON = 111320          # m por grado de longitud en el ecuador (se multiplica por cos(latitud))
+M_PER_DEG_LAT = 110540          # m por grado de latitud
+SLOPE_FLAT, SLOPE_GENTLE = 3, 12  # % (límites de clase, RC-06)
+ELEV_HIGH_ANDES, ELEV_SIERRA = 3700, 2000  # m
+REGION_COAST_MAX_RAIN = 300     # mm/año
+
+SLOPE_CLASSES = ("plano", "suave", "ladera")
+REGIONS = ("costa", "sierra", "altoandina", "selva")
+
+
+def slope_pct(grid: list[list[float | None]], lat: float) -> float | None:
+    """RC-06: pendiente (%) con la cuadrícula 3×3 de SRTM (filas de norte a sur, columnas de oeste a este).
+    pendiente = 100 × √(dzdx² + dzdy²). Sin alguno de los 4 vecinos no hay dato."""
+    north, south = grid[0][1], grid[2][1]
+    west, east = grid[1][0], grid[1][2]
+    if None in (north, south, west, east):
+        return None
+    dzdx = (east - west) / (2 * SLOPE_STEP * M_PER_DEG_LON * np.cos(np.radians(lat)))
+    dzdy = (north - south) / (2 * SLOPE_STEP * M_PER_DEG_LAT)
+    return float(100 * np.sqrt(dzdx ** 2 + dzdy ** 2))
+
+
+def slope_class(pct: float | None) -> str:
+    """RC-06: < 3 % plano; < 12 % suave; si no, ladera. Sin dato: suave."""
+    if pct is None:
+        return "suave"
+    if pct < SLOPE_FLAT:
+        return "plano"
+    if pct < SLOPE_GENTLE:
+        return "suave"
+    return "ladera"
+
+
+def detect_region(elev_real: float | None, elev_area: float | None, annual_rain: float) -> str:
+    """RC-06: con la altitud real (o la del área si falta) y la lluvia anual de la tabla de clima (ya con RC-04)."""
+    elev = elev_real if elev_real is not None else elev_area
+    if elev is not None and elev >= ELEV_HIGH_ANDES:
+        return "altoandina"
+    if elev is not None and elev >= ELEV_SIERRA:
+        return "sierra"
+    if annual_rain < REGION_COAST_MAX_RAIN:
+        return "costa"
+    return "selva"
+
+
+# --- RC-07 Valores por defecto y respuestas del usuario ----------------------------------------------------------
+
+DEFAULT_PRIORITIES = {"aptitud": 3, "agua": 3, "suelo": 3, "plagas": 2, "clima": 3, "ingresos": 3, "erosion": 2}
+
+# Rotación típica de cada región: 3 pasos (cultivo, mes de siembra).
+DEFAULT_ROTATION = {
+    "costa": (("algodon", 9), ("maiz", 4), ("algodon", 9)),
+    "sierra": (("papa", 10), ("papa", 10), ("cebada", 12)),
+    "altoandina": (("papa", 10), ("papa", 10), ("cebada", 12)),
+    "selva": (("maiz", 10), ("maiz", 3), ("yuca", 10)),
+}
+
+SALT_LEVEL = {"baja": 0.0, "media": 0.5, "alta": 1.0}   # RC-08.4
+
+
+def default_irrigation(region: str) -> str:
+    return "limitada" if region == "costa" else "no"
+
+
+def default_salt(region: str) -> str:
+    return "media" if region == "costa" else "baja"
+
+
+@dataclass(frozen=True)
+class Detected:
+    """Lo que se deduce de la ubicación (RC-06)."""
+    region: str
+    slope_pct: float | None
+    slope_class: str
+
+
+@dataclass(frozen=True)
+class FarmInputs:
+    """Datos con los que se calcula: los detectados, salvo lo que el usuario cambió (RC-07, RF-35)."""
+    region: str
+    slope_class: str
+    irrigation: str                 # 'no' | 'limitada' | 'suficiente'
+    salt: str                       # 'baja' | 'media' | 'alta'
+    texture: str | None             # una de crops.TEXTURES, o None si no se conoce
+    ph: float | None
+    priorities: dict
+    rotation: tuple                 # ((cultivo, mes), × 3)
+    soil_from_satellite: bool       # la textura o el pH vienen de SoilGrids (RC-13, vacíos de información)
+
+    @property
+    def salt_level(self) -> float:
+        return SALT_LEVEL[self.salt]
+
+
+def resolve_inputs(detected: Detected, overrides: dict | None = None, soil_estimate: dict | None = None) -> FarmInputs:
+    """RC-07. `overrides` tiene solo lo que el usuario cambió en «Mis datos», con las claves
+    region, slope_class, irrigation, salt, texture, ph, priorities y rotation.
+
+    - Si cambia la región, el riego, la sal y la rotación por defecto pasan a ser los de la nueva región,
+      salvo los que el usuario ya cambió.
+    - `soil_estimate` es la estimación satelital (RC-19: {'texture', 'ph'}). Lo que escribe el usuario tiene prioridad.
+    """
+    o = overrides or {}
+    region = o.get("region", detected.region)
+    texture, ph, from_sat = o.get("texture"), o.get("ph"), False
+    if soil_estimate:
+        if texture is None and soil_estimate.get("texture") is not None:
+            texture, from_sat = soil_estimate["texture"], True
+        if ph is None and soil_estimate.get("ph") is not None:
+            ph, from_sat = soil_estimate["ph"], True
+    return FarmInputs(
+        region=region,
+        slope_class=o.get("slope_class", detected.slope_class),
+        irrigation=o.get("irrigation", default_irrigation(region)),
+        salt=o.get("salt", default_salt(region)),
+        texture=texture,
+        ph=ph,
+        priorities={**DEFAULT_PRIORITIES, **o.get("priorities", {})},
+        rotation=tuple(tuple(step) for step in o.get("rotation", DEFAULT_ROTATION[region])),
+        soil_from_satellite=from_sat,
+    )
