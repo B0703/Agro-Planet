@@ -31,7 +31,8 @@ rotasat/
   agro.py                # Motor puro sin red: RC-02, RC-03 y RC-06 a RC-15
   climate.py             # Arma la tabla de clima de un lugar: fuentes + RC-02/03/04
   place.py               # Lugar: coordenadas, nombre (RF-16), región y valores por defecto
-  i18n.py                # Catálogo de textos del Anexo C: t(clave, idioma, **valores)
+  i18n.py                # Catálogo de textos del Anexo C: t(texto_es, idioma, **valores), vocab(), month()
+  texts_data.py          # GENERADO por scripts/build_texts.py desde el Anexo C (no editar a mano)
   cache.py               # Caché en disco (RNF-02)
   sources/
     power.py             # NASA POWER, datos diarios y mensuales

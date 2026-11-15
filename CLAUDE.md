@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T02 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T03 are done. The git repo has no commits yet.
 
 ## Commands
 
@@ -16,6 +16,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest                                # all tests (config in pyproject.toml)
 .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
 ```
+
+### Texts (i18n)
+
+Every visible string goes through `rotasat.i18n.t(spanish_text, lang, **fields)`, keyed by the **exact Spanish text from Annex C**. An unknown key raises `KeyError`, so a string that isn't in the annex can't reach the UI. Annex C placeholders were Python expressions from the reference code; `scripts/build_texts.py` (`PLACEHOLDERS`) renames them to field names (`{ctx['elev']:,.0f}` becomes `{elev:,.0f}`). `rotasat/texts_data.py` is generated, so never hand-edit it. If Annex C changes, run `.venv/Scripts/python scripts/build_texts.py`; a test fails when the generated file is stale. Domain vocabulary (regions, textures, months, form options) is available through `vocab()`, `options()` and `month()`.
 
 UI tests use `streamlit.testing.v1.AppTest` (see `tests/test_smoke.py`). The layout follows `specs/Plan.md` §2. Keep the layers separate: `rotasat/agro.py` and `rotasat/crops.py` must stay pure, with no network access and no Streamlit, so that the Annex B tests can run offline from `data/cache/`.
 
