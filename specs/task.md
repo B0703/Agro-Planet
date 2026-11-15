@@ -8,7 +8,7 @@ Orden: primero el motor sin red, luego los datos y al final la interfaz.
 | **T01** ✅ | Esqueleto del proyecto: estructura del Plan §2, `requirements.txt`, `pytest` configurado y un `app_simple.py` mínimo que arranca | — | — | `streamlit run app_simple.py` abre la página y `pytest` corre |
 | **T02** ✅ | `crops.py`: Anexo A completo (18 entradas, con las notas ES/EN) | Anexo A | T01 | Una prueba verifica los 18 ids y algunos valores puntuales |
 | **T03** ✅ | `i18n.py`: catálogo del Anexo C en ES/EN y la función `t()` | RF-60 a RF-64, Anexo C | T01 | Todas las claves existen en los dos idiomas |
-| **T04** | `cache.py` y `SourceError` | RNF-02, RNF-05 | T01 | Pruebas de acierto y fallo de caché con un servicio simulado |
+| **T04** ✅ | `cache.py`, `SourceError` y `sources/http.py` | RNF-02, RNF-05 | T01 | Pruebas de acierto y fallo de caché con un servicio simulado |
 | **T05** | `sources/power.py` (diario y humedad del suelo) y `sources/srtm.py` (punto y 3×3) | RC-01, RC-06, RC-17 | T04 | Ica descargado y guardado; la altitud SRTM da 405 m |
 | **T06** | Motor del clima: corrección por altitud y tabla mensual | RC-02, RC-03 | T05 | Pruebas a mano: pesos de la costa, ET0 y P90 |
 | **T07** | `sources/chirps.py` y `imerg.py`, con la descarga en segundo plano y el estado «preliminar» | RC-04, RC-05 | T04, T06 | Chupaca queda con CHIRPS en la caché y en Ica se usa IMERG desde la caché |

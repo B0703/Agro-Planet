@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T03 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T04 are done. The git repo has no commits yet.
 
 ## Commands
 
@@ -16,6 +16,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest                                # all tests (config in pyproject.toml)
 .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
 ```
+
+### External data
+
+Every external call goes through `rotasat.cache.get_or_fetch(service, params, fetch)`, which stores one JSON file per response in `data/cache/{service}/{sha1}.json`. Float parameters are rounded to 4 decimals before the key is built. Writes are atomic, and nothing is cached when a fetch fails. Any failure surfaces as `rotasat.cache.SourceError` (with `.service` and `.error_name`), which the UI turns into an Annex C message. HTTP requests use `rotasat.sources.http.get_json`, which sets a timeout and a generic `RotaSat/1.0` User-Agent. Tests isolate the cache by setting `ROTASAT_CACHE_DIR` to a temporary folder, and they never touch the network.
 
 ### Texts (i18n)
 
