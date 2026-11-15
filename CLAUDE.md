@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T12 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T13 are done. The git repo has no commits yet.
 
 ## Commands
 
@@ -16,13 +16,14 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest                                # all tests (config in pyproject.toml)
 .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
 .venv/Scripts/python -m pytest -m network                     # tests that call the real services (deselected by default)
+.venv/Scripts/python scripts/prefetch.py                     # download the 7 Annex B sites to data/cache/ (--check: offline report)
 ```
 
 ### External data
 
 Every external call goes through `rotasat.cache.get_or_fetch(service, params, fetch)`, which stores one JSON file per response in `data/cache/{service}/{sha1}.json`. Float parameters are rounded to 4 decimals before the key is built. Writes are atomic, and nothing is cached when a fetch fails. Any failure surfaces as `rotasat.cache.SourceError` (with `.service` and `.error_name`), which the UI turns into an Annex C message. HTTP requests use `rotasat.sources.http.get_json`, which sets a timeout and a generic `RotaSat/1.0` User-Agent. Tests isolate the cache by setting `ROTASAT_CACHE_DIR` to a temporary folder, and they never touch the network. The exception is `tests/test_annex_b.py`, which reads the real `data/cache/` offline and skips any site that hasn't been downloaded.
 
-`rotasat/climate.py` is the bridge between the sources (network or cache) and the pure engine in `agro.py`: `climate.build(lat, lon)` returns a `PlaceClimate`. Rainfall comes from NASA SERVIR ClimateSERV, using CHIRPS (`datatype=0`) or IMERG (`datatype=26`). Each source averages a square exactly one native pixel wide (half-side 0.025° for CHIRPS, 0.05° for IMERG). These sizes were calibrated so that Annex B.1 is reproduced exactly; don't change them (see `specs/Plan.md` §4). ClimateSERV returns 503 under parallel load, so send its requests one at a time. A CHIRPS download takes about 70 s per site and IMERG takes about 7 min.
+`rotasat/climate.py` is the bridge between the sources (network or cache) and the pure engine in `agro.py`: `climate.build(lat, lon)` returns a `PlaceClimate`. Rainfall comes from NASA SERVIR ClimateSERV, using CHIRPS (`datatype=0`) or IMERG (`datatype=26`). Each source averages a square exactly one native pixel wide (half-side 0.025° for CHIRPS, 0.05° for IMERG). These sizes were calibrated so that Annex B.1 is reproduced exactly; don't change them (see `specs/Plan.md` §4). ClimateSERV returns 503 under parallel load, so send its requests one at a time. A CHIRPS download takes about 70 s per site and IMERG takes about 7 min. `scripts/prefetch.py` downloads every source for the 7 demo sites one request at a time; `tests/test_annex_b.py::test_all_sites_cached` fails if any is missing. When a task adds a new source (geocoding T14, NDVI T18, Ica basin rainfall T20), add its step to `prefetch.steps()`.
 
 ### Texts (i18n)
 

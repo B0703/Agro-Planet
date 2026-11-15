@@ -48,6 +48,14 @@ def _place(site):
     return climate.build(lat, lon, start_download=False)
 
 
+def test_all_sites_cached():
+    """T13 / RNF-03: data/cache/ trae completos los 7 lugares (si falla: python scripts/prefetch.py).
+    Así las pruebas de este archivo nunca se saltan en silencio."""
+    from tests.test_prefetch import prefetch
+    assert set(prefetch.SITES) == set(B1)
+    assert prefetch.run(prefetch.SITES, check=True, out=lambda _: None) == 0
+
+
 @pytest.mark.parametrize("site", list(B1))
 def test_b1_climate(site):
     lat, lon, elev, slope, slope_cls, region, source, rain, t_mean, frost, counts = B1[site]
