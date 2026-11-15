@@ -92,3 +92,12 @@ def month(n: int, lang: str, abbr: bool = False) -> str:
 def gps_error(key: str, lang: str) -> str:
     """Motivo del fallo de GPS más « Escriba su ubicación.» (C.3, RF-42, CA-07)."""
     return t("{motivo} Escriba su ubicación.", lang, motivo=vocab("gps_error", key, lang))
+
+
+def key_starting(prefix: str) -> str:
+    """La clave del Anexo C que empieza con `prefix` (para los bloques largos de Markdown de Ayuda, RF-36).
+    Falla si no hay exactamente una."""
+    found = [k for k in _STRINGS if k.startswith(prefix)]
+    if len(found) != 1:
+        raise KeyError(f"{len(found)} textos del Anexo C empiezan con {prefix!r}")
+    return found[0]

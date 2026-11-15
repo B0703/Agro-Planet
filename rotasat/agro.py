@@ -820,3 +820,39 @@ def climate_summary(clim: pd.DataFrame, lang: str) -> list[str]:
         out.append(t("💨 El sol y el viento evaporan **{et0:,.0f} mm al año**: {ratio:.1f} veces lo que llueve.", lang,
                      et0=et0, ratio=et0 / total))
     return out
+
+
+# --- Series por año (RF-55) y humedad del suelo (RC-17) ----------------------------------------------------------
+
+TREND_EARLY = (2005, 2009)      # RF-55: se compara 2020–2024 con 2005–2009
+TREND_LATE = (2020, 2024)
+
+
+def yearly_climate(daily: pd.DataFrame, p90: float) -> pd.DataFrame:
+    """RF-55: por año (índice), con los datos diarios YA corregidos (RC-02): máxima media (°C), días con riesgo de
+    helada (mínima ≤ 2 °C) y días de calor extremo (máxima ≥ P90 del lugar)."""
+    year = daily.index.year
+    out = pd.DataFrame({
+        "t_max": daily["t_max"].groupby(year).mean(),
+        "dias_helada": (daily["t_min"] <= FROST_T).groupby(year).sum(),
+        "dias_calor": (daily["t_max"] >= p90).groupby(year).sum(),
+    })
+    out.index.name = "anio"
+    return out
+
+
+def tmax_change(yearly: pd.DataFrame) -> float:
+    """RF-55: máxima media de 2020–2024 menos la de 2005–2009 (°C)."""
+    early = yearly.loc[TREND_EARLY[0]:TREND_EARLY[1], "t_max"].mean()
+    late = yearly.loc[TREND_LATE[0]:TREND_LATE[1], "t_max"].mean()
+    return float(late - early)
+
+
+def soil_moisture_monthly(data: dict) -> pd.DataFrame:
+    """RC-17: promedio 2005–2024 por mes (1–12) de la humedad de superficie y de raíces, en % (0 seco · 100 saturado).
+    `data` es la salida de sources.power.soil_moisture; los meses sin dato se ignoran."""
+    df = pd.DataFrame({"mes": [int(m[4:6]) for m in data["months"]],
+                       "superficie": data["surface"], "raices": data["root"]}, dtype="float64")
+    out = df.groupby("mes")[["superficie", "raices"]].mean().reindex(range(1, 13)) * 100
+    out.index.name = "mes"
+    return out

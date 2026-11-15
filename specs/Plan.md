@@ -161,6 +161,19 @@ los pedidos se hacen de uno en uno.
     la descarga de CHIRPS.
   - El sondeo de RF-21 es un `st.fragment(run_every=6)` que actualiza la página solo si no hay un panel abierto.
   - Los códigos de error del GPS: 1 → `denegado`, 2 → `no_disponible`, 3 → `tiempo` y 0 → `no_soportado`.
+- **Paneles del terreno (T17):**
+  - `rotasat/ui/farm.py` arma lo que necesitan los paneles: clima, datos detectados, respuestas de «Mis datos», tabla
+    RC-09 y rotaciones RC-12. Lo guarda en la sesión y lo recalcula solo cuando cambian las respuestas o la lluvia.
+  - Las respuestas se guardan en `overrides[(lat, lon)]`, solo con lo que el usuario cambió (RC-07).
+  - `rotasat/ui/climate_sections.py` tiene las secciones de RF-51 a RF-55 y RF-57. Las usan el panel Clima del terreno
+    (RF-30) y, en T20, los paneles de la vista Clima. El río (RF-56) y el panel Satélite con el botón de SoilGrids
+    quedan para T20 y T18.
+  - Los controles de «Mis datos» llevan en su clave una versión que sube con cada respuesta. Así se vuelven a crear con
+    los valores ya recalculados; por ejemplo, el riego por defecto de la región nueva.
+  - Los `format_func` usan el idioma capturado al dibujar (`t(..., lg)`), nunca `tr()`. Streamlit y `AppTest` pueden
+    llamarlos fuera de una ejecución de la app, donde `st.session_state` no existe.
+  - Los bloques largos de Ayuda se buscan en el catálogo con `i18n.key_starting()`, que exige una sola coincidencia.
+  - `st.info` y `st.warning` muestran el emoji inicial del texto como icono del aviso.
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 

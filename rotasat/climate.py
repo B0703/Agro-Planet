@@ -36,6 +36,7 @@ class PlaceClimate:
     terrain: dict                 # altitudes 3×3 de SRTM (para la pendiente, RC-06)
     rain_source: str              # POWER_RAIN, CHIRPS_RAIN o IMERG_RAIN
     rain_status: str              # estado de CHIRPS: chirps.READY / RUNNING / FAILED / MISSING (costa: READY)
+    yearly: pd.DataFrame | None = None   # por año: máxima media, días de helada y de calor (RF-55)
 
     @property
     def preliminary(self) -> bool:
@@ -54,6 +55,7 @@ def build(lat: float, lon: float, *, start_download: bool = True) -> PlaceClimat
     df = power.daily_frame(daily)
     corrected, corr = agro.correct_temperatures(df, daily["elev_area"], terrain["elev"])
     clim, p90 = agro.monthly_climate(corrected)
+    yearly = agro.yearly_climate(corrected, p90)
     rain_power = clim["lluvia"].copy()
 
     source, status = POWER_RAIN, chirps.READY
@@ -72,7 +74,8 @@ def build(lat: float, lon: float, *, start_download: bool = True) -> PlaceClimat
             status = chirps.ensure_background(lat, lon) if start_download else chirps.status(lat, lon)
 
     return PlaceClimate(clim=clim, rain_power=rain_power, p90=p90, correction=corr, elev=terrain["elev"],
-                        elev_area=daily["elev_area"], terrain=terrain, rain_source=source, rain_status=status)
+                        elev_area=daily["elev_area"], terrain=terrain, rain_source=source, rain_status=status,
+                        yearly=yearly)
 
 
 def detect(pc: PlaceClimate, lat: float) -> agro.Detected:
