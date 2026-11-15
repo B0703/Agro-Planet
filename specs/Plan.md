@@ -1,4 +1,4 @@
-# RotaSat — Plan técnico (Plan.md)
+# Agro Planet — Plan técnico (Plan.md)
 
 | | |
 |---|---|
@@ -80,7 +80,7 @@ Ninguno necesita clave (RNF-01). Todas las llamadas pasan por `cache.py`.
 | GPM IMERG | SERVIR ClimateSERV | Igual que CHIRPS con `datatype=26`, de 2015 a 2024, con un cuadrado de **medio lado 0.05°** (un píxel IMERG). Tarda unos 7 min. La serie termina el 2024-06-01, pero igual se divide entre 10 años (es lo que reproduce el Anexo B). **Solo se lee de la caché** (Spec §10.2); `prefetch.py` lo descarga para Ica |
 | NDVI | ORNL DAAC MODIS Web Service | `GET https://modis.ornl.gov/rst/api/v1/MOD13Q1/subset?latitude=..&longitude=..&band=250m_16_days_NDVI&startDate=A2023001&endDate=A2024366&kmAboveBelow=0&kmLeftRight=0` (escala ×0.0001). Para VIIRS se usa `VNP13A1` |
 | Suelo | ISRIC SoilGrids v2 | `GET https://rest.isric.org/soilgrids/v2.0/properties/query?lon=..&lat=..&property=clay&property=sand&property=phh2o&depth=0-5cm&depth=5-15cm&value=mean`. La arcilla y la arena vienen en g/kg (÷10 da %) y el pH viene ×10 |
-| Búsqueda y nombre | Nominatim (OSM) | `/search` con `countrycodes=pe` y luego sin él, `limit=8`, `accept-language=es`; `/reverse`. Se envía un `User-Agent` genérico (`RotaSat/1.0`) y como máximo una llamada por segundo |
+| Búsqueda y nombre | Nominatim (OSM) | `/search` con `countrycodes=pe` y luego sin él, `limit=8`, `accept-language=es`; `/reverse`. Se envía un `User-Agent` genérico (`AgroPlanet/1.0`) y como máximo una llamada por segundo |
 | Mapa | Esri | Teselas `World_Imagery` y la capa `Reference/World_Boundaries_and_Places` |
 
 **Calibración de la lluvia (T07).** El Spec no fija el área que se promedia. Se probaron varios tamaños contra la lluvia
@@ -126,7 +126,7 @@ los pedidos se hacen de uno en uno.
   - Los beneficios y los riesgos que comparan con la actual solo se calculan para A y B. «Baja aptitud» y las notas
     aparecen en las tres rotaciones.
   - En el resumen del clima, los meses lluviosos se unen con «, » y « y » / « and » (Anexo C.1).
-  - WhatsApp: encabezado «🌱 *RotaSat* — lugar», viñetas «• », líneas en blanco entre bloques y `**` pasado a `*`
+  - WhatsApp: encabezado «🌱 *Agro Planet* — lugar», viñetas «• », líneas en blanco entre bloques y `**` pasado a `*`
     (la negrita de WhatsApp). Se compara con la mejor de A y B; si empatan, gana A.
 - **RC-20 · Tipos de lugar y campos de la dirección (T14).** Para ordenar los resultados se usa el `addresstype` de
   Nominatim: pueblos, caseríos y calles = `village`, `town`, `hamlet`, `isolated_dwelling`, `locality`, `road`; ciudades

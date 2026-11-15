@@ -237,7 +237,7 @@ def rotaciones_body() -> None:
             for key, title in EXPLAIN_TITLES:
                 if ex[key]:
                     st.markdown(f"**{tr(title)}**\n\n" + "\n".join(f"- {x}" for x in ex[key]))
-    st.info(tr("🤝 RotaSat **apoya, no reemplaza** la experiencia del agricultor ni la asesoría de un agrónomo."))
+    st.info(tr("🤝 Agro Planet **apoya, no reemplaza** la experiencia del agricultor ni la asesoría de un agrónomo."))
 
 
 # --- RF-33 Satélite (NDVI, RC-16) --------------------------------------------------------------------------------
@@ -444,7 +444,7 @@ HELP_SECTIONS = (("🛰️ Datos que usa", "\n| Dato | Para qué |"), ("🧮 Có
 
 
 def ayuda_body() -> None:
-    st.markdown(tr("RotaSat convierte 20 años de datos satelitales de la NASA en una recomendación sencilla: **qué "
+    st.markdown(tr("Agro Planet convierte 20 años de datos satelitales de la NASA en una recomendación sencilla: **qué "
                    "sembrar, cuándo y en qué orden**."))
     for title, start in HELP_SECTIONS:
         with st.expander(tr(title)):
@@ -467,5 +467,5 @@ PANELS: list[Panel] = [
           body=whatsapp_body),
     Panel("datos", "⚙️", "Mis datos", "⚙️ Mis datos: riego, suelo y prioridades", "Riego, suelo y lo que más le importa",
           body=datos_body),
-    Panel("ayuda", "ℹ️", "Ayuda", "ℹ️ Cómo funciona RotaSat", "Datos usados, cálculos y limitaciones", body=ayuda_body),
+    Panel("ayuda", "ℹ️", "Ayuda", "ℹ️ Cómo funciona Agro Planet", "Datos usados, cálculos y limitaciones", body=ayuda_body),
 ]

@@ -1,4 +1,4 @@
-# RotaSat — Tareas (task.md)
+# Agro Planet — Tareas (task.md)
 
 Cada tarea cita lo que cumple del Spec y se da por terminada cuando pasan sus pruebas.
 Orden: primero el motor sin red, luego los datos y al final la interfaz.

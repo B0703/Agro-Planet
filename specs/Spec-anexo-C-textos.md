@@ -1,4 +1,4 @@
-# RotaSat — Anexo C del Spec: catálogo de textos (español / inglés)
+# Agro Planet — Anexo C del Spec: catálogo de textos (español / inglés)
 
 Generado automáticamente desde el código de referencia. **Todo texto visible debe coincidir con este catálogo.**
 
@@ -584,8 +584,8 @@ ES| ❓ Vacíos de información
 EN| ❓ Information gaps
 
 [816]
-ES| 🤝 RotaSat **apoya, no reemplaza** la experiencia del agricultor ni la asesoría de un agrónomo.
-EN| 🤝 RotaSat **supports, it does not replace** the farmer's experience or an agronomist's advice.
+ES| 🤝 Agro Planet **apoya, no reemplaza** la experiencia del agricultor ni la asesoría de un agrónomo.
+EN| 🤝 Agro Planet **supports, it does not replace** the farmer's experience or an agronomist's advice.
 
 [822]
 ES| El índice **NDVI** del satélite MODIS mide qué tan verde está el terreno cada 16 días. Cuando baja de **0.2**, el suelo está prácticamente **desnudo**.
@@ -760,8 +760,8 @@ ES| Volver a los valores detectados
 EN| Back to the detected values
 
 [976]
-ES| RotaSat convierte 20 años de datos satelitales de la NASA en una recomendación sencilla: **qué sembrar, cuándo y en qué orden**.
-EN| RotaSat turns 20 years of NASA satellite data into a simple recommendation: **what to plant, when and in what order**.
+ES| Agro Planet convierte 20 años de datos satelitales de la NASA en una recomendación sencilla: **qué sembrar, cuándo y en qué orden**.
+EN| Agro Planet turns 20 years of NASA satellite data into a simple recommendation: **what to plant, when and in what order**.
 
 [980]
 ES| 🛰️ Datos que usa
@@ -792,8 +792,8 @@ ES| ⚠️ Limitaciones
 EN| ⚠️ Limitations
 
 [1037]
-ES| \n- Los satélites promedian áreas grandes: el microclima de una quebrada puede ser distinto.\n- Los datos de los 17 cultivos son referenciales y **deben validarse con agrónomos locales**.\n- No incluye precios de mercado actuales.\n- **RotaSat apoya, no reemplaza** al agricultor ni al agrónomo.\n
-EN| \n- Satellites average large areas: the microclimate of a ravine may be different.\n- The data for the 17 crops are reference values and **must be validated with local agronomists**.\n- Current market prices are not included.\n- **RotaSat supports, it does not replace** the farmer or the agronomist.\n
+ES| \n- Los satélites promedian áreas grandes: el microclima de una quebrada puede ser distinto.\n- Los datos de los 17 cultivos son referenciales y **deben validarse con agrónomos locales**.\n- No incluye precios de mercado actuales.\n- **Agro Planet apoya, no reemplaza** al agricultor ni al agrónomo.\n
+EN| \n- Satellites average large areas: the microclimate of a ravine may be different.\n- The data for the 17 crops are reference values and **must be validated with local agronomists**.\n- Current market prices are not included.\n- **Agro Planet supports, it does not replace** the farmer or the agronomist.\n
 
 [1051]
 ES| Clima
@@ -868,8 +868,8 @@ ES| Ayuda
 EN| Help
 
 [1064]
-ES| ℹ️ Cómo funciona RotaSat
-EN| ℹ️ How RotaSat works
+ES| ℹ️ Cómo funciona Agro Planet
+EN| ℹ️ How Agro Planet works
 
 [1065]
 ES| Datos usados, cálculos y limitaciones

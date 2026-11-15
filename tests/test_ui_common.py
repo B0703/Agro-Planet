@@ -33,7 +33,7 @@ def test_ca01_home_has_exactly_two_big_buttons_and_language():
     assert [c.value for c in at.caption] == ["Marque su chacra en el mapa y vea qué sembrar",
                                              "Vea el clima del lugar donde está ahora"]
     html = " ".join(h.proto.body for h in at.get("html"))
-    assert "RotaSat" in html and "Qué sembrar, cuándo y en qué orden, con datos de la NASA" in html
+    assert "Agro Planet" in html and "Qué sembrar, cuándo y en qué orden, con datos de la NASA" in html
     assert not at.tabs and not at.sidebar.children                        # sin pestañas ni barra lateral
 
 

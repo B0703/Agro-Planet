@@ -1,4 +1,4 @@
-# RotaSat — Especificación del producto (Spec.md)
+# Agro Planet — Especificación del producto (Spec.md)
 
 | | |
 |---|---|
@@ -22,10 +22,10 @@
 en la costa (Ica) el agua subterránea se agota y el río depende de la lluvia de la sierra; en la sierra las heladas y las
 lluvias irregulares dañan los cultivos. Casi no hay técnicos agrarios para asesorarlos.
 
-**Producto.** RotaSat es una página web que, para **cualquier ubicación**, convierte 20 años de datos satelitales de la
+**Producto.** Agro Planet es una página web que, para **cualquier ubicación**, convierte 20 años de datos satelitales de la
 NASA en una recomendación sencilla: **qué sembrar, cuándo y en qué orden (rotación de cultivos)**, explicando el porqué.
 
-**Lo que pide el reto y RotaSat debe cumplir:**
+**Lo que pide el reto y Agro Planet debe cumplir:**
 1. Combinar observaciones de la NASA con información local (suelo, cultivos, prioridades del agricultor).
 2. Comparar al menos 3 rotaciones, incluida la actual.
 3. Para cada una explicar: por qué se sugiere, evidencia, beneficios, vacíos de información y riesgos a revisar con un experto.
@@ -72,7 +72,7 @@ NASA en una recomendación sencilla: **qué sembrar, cuándo y en qué orden (ro
 
 ### 5.1 Vista Inicio
 
-- **RF-01** Al abrir la página se muestra solo: el botón de idioma (arriba a la derecha), el logotipo 🌱, el nombre «RotaSat»,
+- **RF-01** Al abrir la página se muestra solo: el botón de idioma (arriba a la derecha), el logotipo 🌱, el nombre «Agro Planet»,
   el lema, y **dos botones grandes** con icono y etiqueta: 🗺️ **Mi terreno** y 🌦️ **Clima**. Bajo cada botón hay una línea
   que explica qué hace. No hay barra lateral, pestañas ni ningún otro contenido.
 - **RF-02** Los dos botones son tarjetas de al menos 200 px de alto, con el icono grande arriba y el texto debajo.
@@ -141,7 +141,7 @@ NASA en una recomendación sencilla: **qué sembrar, cuándo y en qué orden (ro
   3. Línea de tiempo de 3 años: una fila por rotación, un bloque de color por cultivo; los huecos son meses con el suelo desnudo.
   4. «¿Por qué?»: un plegado por rotación con una barra por criterio y cinco listas: por qué se sugiere, evidencia (datos NASA),
      beneficios frente a la actual, riesgos a revisar con un experto y vacíos de información (RC-13).
-  5. Aviso final: RotaSat apoya, no reemplaza.
+  5. Aviso final: Agro Planet apoya, no reemplaza.
 - **RF-33 Satélite.** Explica el índice de verdor (NDVI). Si los datos del lugar no están guardados, un botón los consulta
   (puede tardar). Muestra el gráfico 2023–2024 con los valores crudos, la línea filtrada y una franja «suelo desnudo»
   por debajo de 0.2; luego los meses con el campo pelado y el promedio. Un plegado opcional compara con VIIRS.
@@ -470,7 +470,7 @@ Los servicios concretos, direcciones y parámetros están en `Plan.md`. Aquí so
 - **CA-08** En un lugar nuevo de la sierra aparece el aviso de resultados preliminares y desaparece solo cuando llega la lluvia satelital.
 - **CA-09** Al pulsar el botón de idioma, toda la página pasa a inglés; con el terreno de Ica, el único texto con tildes o
   «ñ» que queda (fuera de nombres propios) es el botón «Español». Al volver a español, el terreno sigue marcado.
-- **CA-10** En inglés, el mensaje de WhatsApp de Ica empieza con «🌱 *RotaSat* — Pueblo Nuevo, Ica», lista «Quinoa: sow in May»
+- **CA-10** En inglés, el mensaje de WhatsApp de Ica empieza con «🌱 *Agro Planet* — Pueblo Nuevo, Ica», lista «Quinoa: sow in May»
   y termina con el aviso de consultar al «agricultural advisor».
 - **CA-11** A 390 px de ancho no hay desplazamiento horizontal y todos los botones se pueden tocar.
 - **CA-12** Con el servicio de imágenes NDVI caído, el panel Satélite muestra un mensaje de error comprensible y el resto de la página sigue funcionando.

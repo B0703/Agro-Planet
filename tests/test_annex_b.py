@@ -141,7 +141,7 @@ def test_ca10_ica_whatsapp_en():
     table = agro.suitability_table(pc.clim, inp)
     res = agro.auto_rotations(table, pc.clim, inp)
     msg = agro.whatsapp_message("Pueblo Nuevo, Ica", table, res, pc.clim, pc.p90, inp, "en")
-    assert msg.startswith("🌱 *RotaSat* — Pueblo Nuevo, Ica")
+    assert msg.startswith("🌱 *Agro Planet* — Pueblo Nuevo, Ica")
     assert "Quinoa: sow in May" in msg
     assert msg.endswith("Talk to your agricultural advisor before deciding.")
 

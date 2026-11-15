@@ -10,4 +10,4 @@ def test_app_starts():
     at = AppTest.from_file(str(APP)).run(timeout=30)
     assert not at.exception
     assert at.session_state.view == "home"
-    assert any("RotaSat" in h.proto.body for h in at.get("html"))
+    assert any("Agro Planet" in h.proto.body for h in at.get("html"))

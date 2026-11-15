@@ -1,4 +1,4 @@
-"""Motor de cálculo de RotaSat (Spec §6). Módulo puro: no usa la red ni Streamlit.
+"""Motor de cálculo de Agro Planet (Spec §6). Módulo puro: no usa la red ni Streamlit.
 
 T06: RC-02 (corrección de temperatura por altitud) y RC-03 (tabla de clima mensual).
 Los números de este archivo son parte del requisito: no se redondean ni se «mejoran».
@@ -765,7 +765,7 @@ def whatsapp_message(place_name: str, table: pd.DataFrame, results: list[Rotatio
     """
     from .crops import get
     from .i18n import month, t
-    lines = [f"🌱 *RotaSat* — {place_name}", "", t("Cultivos más aptos para su chacra:", lang)]
+    lines = [f"🌱 *Agro Planet* — {place_name}", "", t("Cultivos más aptos para su chacra:", lang)]
     top = table[table["aptitud"] >= WHATSAPP_MIN_APTITUDE].head(WHATSAPP_TOP)
     lines += [f"• {get(r.id).name(lang)}: {t('sembrar en', lang)} {month(int(r.mes), lang)}" for r in top.itertuples()]
     current = results[0]

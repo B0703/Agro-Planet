@@ -1,6 +1,6 @@
 """Vista Inicio (RF-01 a RF-03). Tarea T15.
 
-Solo se muestran: el botón de idioma arriba a la derecha, el logotipo 🌱, el nombre «RotaSat», el lema y dos tarjetas
+Solo se muestran: el botón de idioma arriba a la derecha, el logotipo 🌱, el nombre «Agro Planet», el lema y dos tarjetas
 grandes (🗺️ Mi terreno y 🌦️ Clima), cada una con una línea debajo que explica qué hace.
 """
 from __future__ import annotations
@@ -12,7 +12,7 @@ from .common import CLIMA, TERRENO, go, lang_button, tr
 
 def render() -> None:
     lang_button()                     # arriba a la derecha (CSS .st-key-lang_btn), también en el celular
-    st.html(f'<div class="rs-home-title"><div class="rs-logo">🌱</div><h1>RotaSat</h1>'
+    st.html(f'<div class="rs-home-title"><div class="rs-logo">🌱</div><h1>Agro Planet</h1>'
             f'<p>{tr("Qué sembrar, cuándo y en qué orden, con datos de la NASA")}</p></div>')
     left, right = st.columns(2, gap="large")
     with left:

@@ -120,7 +120,7 @@ def test_http_get_json(monkeypatch):
     monkeypatch.setattr(requests, "get", fake_get)
     assert http.get_json("power", "https://example.org", {"a": 1}) == {"ok": True}
     assert seen["timeout"] == http.DEFAULT_TIMEOUT
-    assert seen["headers"]["User-Agent"] == "RotaSat/1.0"
+    assert seen["headers"]["User-Agent"] == "AgroPlanet/1.0"
 
 
 @pytest.mark.parametrize("resp_or_exc", [_Resp(status=503, body={}), _Resp(body=None),

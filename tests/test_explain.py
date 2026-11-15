@@ -110,7 +110,7 @@ def test_whatsapp_well_done_when_current_is_best():
     res = [result("Actual", SIERRA, c, inp, 80), result("A", SIERRA, c, inp, 70)]
     t = _table(("quinua", 90, 5), ("haba", 41, 6), ("papa", 39, 10), ("cebada", 38, 12))
     msg = agro.whatsapp_message("Chupaca, Junín", t, res, c, 20.0, inp, "es").split("\n")
-    assert msg[0] == "🌱 *RotaSat* — Chupaca, Junín"
+    assert msg[0] == "🌱 *Agro Planet* — Chupaca, Junín"
     assert msg[3:5] == ["• Quinua: sembrar en mayo", "• Haba: sembrar en junio"]         # solo aptitud ≥ 40
     assert "Su rotación actual obtiene *80/100*." in msg
     assert "Su rotación actual ya es la mejor de las comparadas. ¡Bien hecho!" in msg

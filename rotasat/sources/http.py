@@ -11,7 +11,7 @@ import requests
 
 from ..cache import SourceError
 
-USER_AGENT = "RotaSat/1.0"
+USER_AGENT = "AgroPlanet/1.0"
 DEFAULT_TIMEOUT = 60  # segundos
 
 

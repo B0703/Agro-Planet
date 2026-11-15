@@ -163,7 +163,7 @@ def test_editing_current_rotation_recalculates():
 def test_whatsapp_message_and_link():
     at = open_panel("ica", "whatsapp", "en")
     msg = at.code[0].value
-    assert msg.startswith("🌱 *RotaSat* — Pueblo Nuevo, Ica") and "Quinoa: sow in May" in msg
+    assert msg.startswith("🌱 *Agro Planet* — Pueblo Nuevo, Ica") and "Quinoa: sow in May" in msg
     link = at.get("link_button")[0].proto
     assert link.url.startswith("https://wa.me/?text=%F0%9F%8C%B1") and link.label == "Open in WhatsApp"
 

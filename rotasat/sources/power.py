@@ -17,7 +17,7 @@ BASE = "https://power.larc.nasa.gov/api/temporal"
 START, END = 2005, 2024
 FILL = -999.0
 
-# Nombre en POWER → nombre de columna en RotaSat.
+# Nombre en POWER → nombre de columna en Agro Planet.
 DAILY_PARAMS = {
     "T2M": "t_mean",          # °C
     "T2M_MAX": "t_max",       # °C
