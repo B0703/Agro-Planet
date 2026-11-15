@@ -107,6 +107,14 @@ los pedidos se hacen de uno en uno.
   39.97. Sin redondear queda «No recomendado» y los contadores dan 3/10/4; el Anexo B.1 dice 3/11/3. Con la aptitud redondeada
   (40, «Con cuidado») coinciden los 7 lugares, y en los otros 6 las dos reglas dan lo mismo. Se aprobó usar el valor redondeado
   y se corrigió el Spec.
+- **D-RC12 · Desempates entre secuencias (RC-12.4).** Las secuencias se generan con `itertools.permutations` sobre los
+  candidatos en el orden de la tabla RC-09, y se ordenan por total con un orden **estable** (`sorted` de Python). Hay
+  empates exactos en el primer puesto en Ica (4 secuencias), Huancavelica, Apurímac y Puno, siempre entre permutaciones de
+  los mismos 3 cultivos. **Confirmada en T11:** el orden estable reproduce A y B del B.3 en los 7 lugares; con el
+  `sort_values` por defecto de pandas (no estable), en Apurímac A sale «Avena forrajera → Quinua → Tarwi» y no coincide.
+- **RC-12 en los bordes:** la aptitud de los candidatos es la redondeada de la tabla. El cultivo principal es el más
+  repetido de la rotación actual (en empate, el primero). Si no hay ninguna secuencia válida, solo se muestra la actual; si
+  ninguna sirve como B, se muestran Actual y A.
 - **Mejor mes (RC-09):** de enero a diciembre, se queda el mes con la mayor tupla
   `(round(aptitud), round(min(cobertura, 1.5), 2), −exposición_helada)`; solo se reemplaza si es estrictamente mayor,
   así en un empate total gana el mes más temprano.

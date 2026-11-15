@@ -555,3 +555,96 @@ def score_rotations(evals: list[dict], inputs: FarmInputs) -> list[dict]:
             total *= LOW_APTITUDE_FACTOR
         out.append({"scores": {k: float(v) for k, v in scores.items()}, "total": float(total)})
     return out
+
+
+# --- RC-12 Rotaciones automáticas (A y B) ------------------------------------------------------------------------
+
+CANDIDATE_MIN_APTITUDE = 45
+MAX_CANDIDATES = 8
+MIN_CANDIDATES = 3
+
+
+def candidates(table: pd.DataFrame) -> list[str]:
+    """RC-12.1: cultivos con aptitud (redondeada, la de la tabla) ≥ 45, como máximo los 8 primeros de la tabla RC-09.
+    Si son menos de 3, los 3 primeros de la tabla."""
+    ok = table[table["aptitud"] >= CANDIDATE_MIN_APTITUDE].head(MAX_CANDIDATES)
+    if len(ok) < MIN_CANDIDATES:
+        ok = table.head(MIN_CANDIDATES)
+    return list(ok["id"])
+
+
+def candidate_sequences(cands: list[str], best_month: dict) -> list[tuple]:
+    """RC-12.2–3: secuencias ordenadas de 3 candidatos distintos, cada uno en su mejor mes; sin dos pasos seguidos de
+    la misma familia y, si hay alguna leguminosa entre los candidatos, con al menos una."""
+    from itertools import permutations
+    from .crops import get
+    any_legume = any(get(c).is_legume for c in cands)
+    out = []
+    for seq in permutations(cands, 3):
+        fam = [get(c).family for c in seq]
+        if fam[0] == fam[1] or fam[1] == fam[2]:
+            continue
+        if any_legume and not any(get(c).is_legume for c in seq):
+            continue
+        out.append(tuple((c, best_month[c]) for c in seq))
+    return out
+
+
+def main_crop(rotation) -> str:
+    """RC-12.6: el cultivo que más se repite en la rotación actual (en empate, el primero que aparece)."""
+    ids = [c for c, _ in rotation]
+    return max(ids, key=ids.count)       # max() se queda con el primero en un empate
+
+
+@dataclass(frozen=True)
+class RotationResult:
+    label: str                  # 'Actual' | 'A' | 'B'
+    rotation: tuple             # ((cultivo, mes), × 3)
+    evaluation: dict            # RC-10
+    scores: dict                # RC-11, recalculados entre Actual, A y B (RC-12.8)
+    total: float
+
+
+def auto_rotations(table: pd.DataFrame, clim: pd.DataFrame, inputs: FarmInputs) -> list[RotationResult]:
+    """RC-12: devuelve [Actual, A, B] con los puntajes recalculados comparando solo las tres.
+
+    Si no hay ninguna secuencia válida, devuelve solo la actual; si hay una sola, Actual y A.
+    """
+    current = inputs.rotation
+    cands = candidates(table)
+    best_month = dict(zip(table["id"], table["mes"].astype(int)))
+    seqs = candidate_sequences(cands, best_month)
+    evals = {r: evaluate_rotation(r, clim, inputs) for r in seqs}
+
+    # RC-12.4: se puntúan todas junto con la actual y se ordenan de mayor a menor total (orden estable).
+    group = [current, *seqs]
+    totals = score_rotations([evaluate_rotation(current, clim, inputs), *(evals[r] for r in seqs)], inputs)
+    ranked = sorted(range(1, len(group)), key=lambda i: -totals[i]["total"])
+    ranked = [group[i] for i in ranked]
+
+    chosen = [("Actual", current)]
+    if ranked:
+        a = ranked[0]
+        chosen.append(("A", a))
+        a_crops = {c for c, _ in a}
+        main = main_crop(current)
+        if main in cands and main not in a_crops:
+            b = next((r for r in ranked if main in {c for c, _ in r}), None)
+        else:
+            b = next((r for r in ranked[1:] if {c for c, _ in r} != a_crops), None)
+        if b is not None:
+            chosen.append(("B", b))
+
+    # RC-12.8: puntajes que se muestran, comparando solo Actual, A y B.
+    shown_evals = [evaluate_rotation(current, clim, inputs) if lbl == "Actual" else evals[r] for lbl, r in chosen]
+    shown = score_rotations(shown_evals, inputs)
+    return [RotationResult(lbl, r, ev, s["scores"], s["total"])
+            for (lbl, r), ev, s in zip(chosen, shown_evals, shown)]
+
+
+def rotation_name(result: RotationResult, lang: str) -> str:
+    """RC-12.7: «A: cultivo → cultivo → cultivo», «B: …» y «Actual: …» («Current: …» en inglés)."""
+    from .crops import get
+    from .i18n import t
+    label = t("Actual", lang) if result.label == "Actual" else result.label
+    return f"{label}: " + " → ".join(get(c).name(lang) for c, _ in result.rotation)

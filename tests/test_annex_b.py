@@ -114,6 +114,17 @@ def test_b3_rotation_totals(site):
     assert tuple(round(s["total"]) for s in agro.score_rotations(evals, inp)) == totals
 
 
+@pytest.mark.parametrize("site", list(B3))
+def test_b3_auto_rotations(site):
+    """T11 (RC-12): el motor elige solo A y B, y los totales mostrados (entre Actual, A y B) son los del B.3."""
+    a, b, totals = B3[site]
+    pc = _place(site)
+    inp = agro.resolve_inputs(climate.detect(pc, B1[site][0]))
+    res = agro.auto_rotations(agro.suitability_table(pc.clim, inp), pc.clim, inp)
+    assert [agro.rotation_name(r, "es") for r in res[1:]] == [f"A: {a}", f"B: {b}"]
+    assert tuple(round(r.total) for r in res) == totals
+
+
 def test_ca05_ica_sufficient_irrigation():
     """CA-05: en Ica, con «Sí, agua suficiente», la quinua sube de 76 a 89 y queda sin limitaciones importantes."""
     pc = _place("Ica — Valle (Pueblo Nuevo)")
