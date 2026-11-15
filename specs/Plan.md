@@ -63,6 +63,8 @@ streamlit run app_simple.py            # http://localhost:8501
 pytest                                  # todas las pruebas
 pytest tests/test_agro.py::test_ica     # una sola prueba
 python scripts/prefetch.py              # descarga los 7 lugares de ejemplo a data/cache/
+python scripts/check_mobile.py          # CA-11: la app a 390 px en Chrome/Edge sin ventana (--width 1280 --height 800 --no-mobile)
+pytest -m browser                       # lo mismo como prueba (deseleccionada por defecto)
 ```
 
 ## 4. Servicios externos (§7 del Spec)
@@ -211,6 +213,23 @@ los pedidos se hacen de uno en uno.
     histórico de barras va de 2005–06 a la última temporada y la línea punteada es el promedio de 2005–06 a 2023–24.
   - Semáforo: `st.error` (seco), `st.warning` (ligeramente seco) y `st.success` (normal o húmedo).
   - El prefetch descarga el río para los lugares dentro de la caja de la cuenca (solo Ica entre los 7).
+- **Cierre (T21):**
+  - CA-09 se prueba recorriendo todo lo que llega al navegador (los protos de `AppTest`, con el JSON de los gráficos y
+    los enlaces decodificados) en Inicio y en cada panel de las dos vistas con Ica. En inglés solo quedan con tildes el
+    botón «🌐 Español» y su ayuda «Cambiar la página a español», que son el mismo botón.
+  - CA-11 se revisa con `scripts/check_mobile.py`: arranca la app y abre Chrome (o Edge) sin ventana por el protocolo
+    de depuración (CDP), con `websockets`, que ya trae Streamlit, así que no hace falta instalar Playwright. Simula la
+    ubicación del navegador en Ica, recorre los 14 paneles y los cierra con Esc. En cada pantalla mide el
+    desplazamiento horizontal y verifica que cada botón visible cae dentro de la pantalla, mide al menos 24 px y recibe
+    el toque en su centro. Los botones ocultos hasta pasar el cursor (el «Copiar» de `st.code`) no cuentan.
+  - Lo que encontró y se corrigió con CSS (`common.CSS`): la ✕ del panel medía 18 px y ahora mide 44 px. Además, a
+    ≤ 640 px el panel no ocupaba todo el ancho, porque Streamlit le resta 24 px (`max-width: calc(100% - 24px)`), y
+    RNF-06 pide que lo ocupe. El calendario de riesgos es más ancho que el celular, pero se desplaza dentro de su
+    propio recuadro (`overflow-x: auto`), no la página.
+  - En el gráfico del río la leyenda va arriba, porque abajo tapaba las temporadas, que en el celular van giradas.
+  - RNF-05: `tests/test_failures.py` simula cada servicio caído (datos principales en Clima, nombre del lugar, humedad
+    del suelo y CHIRPS fallido en los 13 paneles con lluvia). Ninguno deja la página en blanco ni lanza una excepción.
+    RNF-04 se mide con `AppTest`: un lugar guardado habilita los iconos en menos de 5 s y cada panel abre en menos de 3 s.
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 
@@ -220,5 +239,24 @@ los pedidos se hacen de uno en uno.
 |---|---|---|
 | Unidad | Cada regla RC con casos a mano | `tests/test_agro.py` y `tests/test_climate.py` |
 | Referencia | CA-04 y CA-05: los 7 lugares contra el Anexo B, con tolerancia ±1 | `tests/test_annex_b.py`, que lee de `data/cache/` (sin red) |
-| Textos | Todas las claves del Anexo C en ES y EN; CA-09 y CA-10 | `tests/test_i18n.py` |
-| Interfaz | CA-01, CA-02, CA-03, CA-06, CA-07 y CA-12 | `AppTest`, más una revisión manual a 1280×800 y a 390 px (CA-11) |
+| Textos | Todas las claves del Anexo C en ES y EN; CA-09 y CA-10 | `tests/test_i18n.py`, `tests/test_language.py` |
+| Interfaz | CA-01, CA-02, CA-03, CA-06, CA-07, CA-08 y CA-12 | `AppTest` |
+| Navegador | CA-11 y RNF-06 (390 px y 1280×800), cierre con Esc (CA-03) | `scripts/check_mobile.py`, `pytest -m browser` |
+| Fallos y tiempos | RNF-04 y RNF-05 | `tests/test_failures.py` |
+
+Dónde se prueba cada criterio de aceptación:
+
+| CA | Prueba |
+|---|---|
+| CA-01 | `tests/test_ui_common.py` |
+| CA-02 | `tests/test_terreno_view.py::test_ca02_coordinates_enable_icons_and_show_place_line` |
+| CA-03 | `tests/test_terreno_panels.py` y `tests/test_clima_panels.py` (`test_ca03_*`: 3 lugares × 2 idiomas); Esc en `scripts/check_mobile.py` |
+| CA-04 | `tests/test_annex_b.py` |
+| CA-05 | `tests/test_annex_b.py` y `tests/test_terreno_panels.py::test_ca05_irrigation_from_my_data_updates_what_to_plant` |
+| CA-06 | `tests/test_annex_b.py`, `tests/test_terreno_view.py` (desde la caché) y `tests/test_geocode.py` (`-m network`) |
+| CA-07 | `tests/test_clima_view.py` |
+| CA-08 | `tests/test_terreno_view.py::test_ca08_preliminary_notice_goes_away_when_rain_arrives` |
+| CA-09 | `tests/test_language.py` |
+| CA-10 | `tests/test_annex_b.py` |
+| CA-11 | `tests/test_mobile.py` (`-m browser`) |
+| CA-12 | `tests/test_ndvi_soil.py::test_ca12_ndvi_service_down_shows_plain_error_and_page_keeps_working` |

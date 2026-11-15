@@ -24,8 +24,12 @@ def _months(abbr: bool = True) -> list[str]:
     return [month(m, lang(), abbr=abbr) for m in range(1, 13)]
 
 
-def _plot(fig: go.Figure, height: int = 300) -> None:
-    fig.update_layout(height=height, margin=dict(l=10, r=10, t=30, b=10), legend=dict(orientation="h", y=-0.15))
+def _plot(fig: go.Figure, height: int = 300, legend_top: bool = False) -> None:
+    if legend_top:
+        legend = dict(orientation="h", y=1.0, yanchor="bottom", x=1, xanchor="right")
+    else:
+        legend = dict(orientation="h", y=-0.15)
+    fig.update_layout(height=height, margin=dict(l=10, r=10, t=30, b=10), legend=legend)
     st.plotly_chart(fig, config=CHART, width="stretch")
 
 
@@ -226,7 +230,7 @@ def river() -> None:
     fig.add_scatter(x=labels, y=[out.average] * len(labels), mode="lines", name=tr("promedio"),
                     line=dict(color=GREY, dash="dash"))
     fig.update_yaxes(title_text=tr("mm (setiembre a abril)"))
-    _plot(fig)
+    _plot(fig, legend_top=True)            # abajo taparía las temporadas, que en el celular van giradas
 
 
 # --- RF-57 Sobre los datos ---------------------------------------------------------------------------------------

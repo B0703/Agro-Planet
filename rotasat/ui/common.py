@@ -68,6 +68,14 @@ CSS = f"""
 .rs-home-title .rs-logo {{ font-size: 4rem; line-height: 1; }}
 [class*="st-key-bar_"] button {{ min-height: 3.2rem; padding-left: .35rem; padding-right: .35rem; }}
 [class*="st-key-bar_"] button p {{ word-break: normal; overflow-wrap: normal; hyphens: none; }}
+/* CA-11 / RNF-06: la ✕ del panel se puede tocar (44 px) y en el celular el panel ocupa todo el ancho. */
+[data-testid="stDialog"] [role="dialog"] button[aria-label="Close"] {{
+  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+}}
+@media (max-width: {PANEL_WIDTH}px) {{
+  [data-testid="stDialog"] > div {{ max-width: 100%; }}
+  [data-testid="stDialog"] [role="dialog"] {{ width: 100vw; max-width: 100vw; margin-left: 0; margin-right: 0; }}
+}}
 </style>
 """
 

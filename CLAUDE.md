@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T20 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T21 are done (every task in the list).
 
 ## Commands
 
@@ -17,6 +17,8 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
 .venv/Scripts/python -m pytest -m network                     # tests that call the real services (deselected by default)
 .venv/Scripts/python scripts/prefetch.py                     # download the 7 Annex B sites to data/cache/ (--check: offline report)
+.venv/Scripts/python scripts/check_mobile.py                 # CA-11: app at 390 px in headless Chrome/Edge via CDP (--lang en; --width 1280 --height 800 --no-mobile)
+.venv/Scripts/python -m pytest -m browser                     # the same as tests (deselected by default, ~4 min)
 ```
 
 ### External data
