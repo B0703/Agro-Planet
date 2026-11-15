@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01–T04 are done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T06 are done. The git repo has no commits yet.
 
 ## Commands
 
@@ -15,6 +15,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
 .venv/Scripts/python -m streamlit run app_simple.py          # http://localhost:8501
 .venv/Scripts/python -m pytest                                # all tests (config in pyproject.toml)
 .venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
+.venv/Scripts/python -m pytest -m network                     # tests that call the real services (deselected by default)
 ```
 
 ### External data
