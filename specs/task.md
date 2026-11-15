@@ -14,7 +14,7 @@ Orden: primero el motor sin red, luego los datos y al final la interfaz.
 | **T07** ✅ | `sources/chirps.py` y `imerg.py`, con la descarga en segundo plano y el estado «preliminar» | RC-04, RC-05 | T04, T06 | Chupaca queda con CHIRPS en la caché y en Ica se usa IMERG desde la caché |
 | **T08** ✅ | Región, pendiente y valores por defecto | RC-06, RC-07 | T06 | Región y pendiente del Anexo B.1 en los 7 lugares |
 | **T09** ✅ | Aptitud de los cultivos, tabla del lugar y **verificación del desempate D-RC09** | RC-08, RC-09 | T02, T08 | El B.1 (aptos, con cuidado y no) y el B.2 coinciden exactamente; CA-05 |
-| **T10** | Evaluación de rotaciones y puntajes | RC-10, RC-11 | T09 | Pruebas a mano de la línea de 36 meses y de la normalización |
+| **T10** ✅ | Evaluación de rotaciones y puntajes | RC-10, RC-11 | T09 | Pruebas a mano de la línea de 36 meses y de la normalización |
 | **T11** | Rotaciones automáticas A y B | RC-12 | T10 | El B.3 coincide con ±1 |
 | **T12** | Textos que genera el motor: explicaciones, WhatsApp y resumen del clima | RC-13, RC-14, RC-15 | T03, T11 | CA-10 |
 | **T13** | `scripts/prefetch.py` (7 lugares) y `tests/test_annex_b.py` sin red | RNF-03, CA-04 | T07, T11 | `pytest tests/test_annex_b.py` pasa sin conexión |

@@ -84,6 +84,36 @@ def test_b2_top5(site):
     assert got == B2[site]
 
 
+# Anexo B.3: totales de Actual, A y B puntuadas entre las tres (RC-11, RC-12.8). A y B se toman del anexo, cada
+# cultivo en su mejor mes de la tabla (RC-12.2); que el motor las elija solo se prueba en T11.
+B3 = {
+    "Ica — Valle (Pueblo Nuevo)": ("Quinua → Avena forrajera → Frijol", "Algodón → Quinua → Maní", (56, 90, 89)),
+    "Junín — Valle del Mantaro (Chupaca)": ("Avena forrajera → Tarwi (chocho) → Quinua",
+                                            "Quinua → Tarwi (chocho) → Papa", (67, 97, 96)),
+    "Huancavelica — zona altoandina": ("Avena forrajera → Quinua → Tarwi (chocho)",
+                                       "Quinua → Tarwi (chocho) → Papa", (65, 94, 92)),
+    "Ayacucho — Huamanga": ("Avena forrajera → Tarwi (chocho) → Quinua", "Quinua → Tarwi (chocho) → Papa", (67, 97, 96)),
+    "Apurímac — Andahuaylas": ("Quinua → Avena forrajera → Tarwi (chocho)", "Quinua → Papa → Tarwi (chocho)",
+                               (67, 97, 96)),
+    "Puno — Altiplano (Juliaca)": ("Quinua → Avena forrajera → Tarwi (chocho)", "Quinua → Tarwi (chocho) → Papa",
+                                   (65, 94, 93)),
+    "Junín — Selva central (Satipo)": ("Maní → Maíz amarillo duro → Pallar", "Maní → Camote → Pallar", (58, 96, 93)),
+}
+
+
+@pytest.mark.parametrize("site", list(B3))
+def test_b3_rotation_totals(site):
+    from rotasat.crops import CROPS
+    by_name = {c.name_es: c.id for c in CROPS}
+    a, b, totals = B3[site]
+    pc = _place(site)
+    inp = agro.resolve_inputs(climate.detect(pc, B1[site][0]))
+    best = agro.suitability_table(pc.clim, inp).set_index("id")["mes"]
+    rot = lambda s: tuple((by_name[n], int(best[by_name[n]])) for n in s.split(" → "))
+    evals = [agro.evaluate_rotation(r, pc.clim, inp) for r in (inp.rotation, rot(a), rot(b))]
+    assert tuple(round(s["total"]) for s in agro.score_rotations(evals, inp)) == totals
+
+
 def test_ca05_ica_sufficient_irrigation():
     """CA-05: en Ica, con «Sí, agua suficiente», la quinua sube de 76 a 89 y queda sin limitaciones importantes."""
     pc = _place("Ica — Valle (Pueblo Nuevo)")

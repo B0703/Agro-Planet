@@ -419,3 +419,139 @@ def suitability_table(clim: pd.DataFrame, inputs: FarmInputs) -> pd.DataFrame:
 def level_counts(table: pd.DataFrame) -> tuple[int, int, int]:
     """Contadores de «Qué sembrar» (RF-31.2): (aptos, con cuidado, no recomendados)."""
     return tuple(int((table["nivel"] == lv).sum()) for lv in LEVELS)
+
+
+# --- RC-10 Evaluación de una rotación ----------------------------------------------------------------------------
+
+TIMELINE_MONTHS = 36            # la línea empieza en enero del año 1; lo que pasa del mes 36 no se cuenta (§10.1)
+SLOPE_FACTOR = {"plano": 0.3, "suave": 0.7, "ladera": 1.0}
+BARE_EROSION = 0.15             # erosión extra por cada mes sin cultivo
+FORAGE_INCOME = 0.5             # ingreso extra por cada cultivo forrajero
+NONCONSECUTIVE_REPEAT = 0.5     # misma familia separada por un paso
+
+
+def place_rotation(rotation) -> list[tuple[str, int, int]]:
+    """RC-10: coloca los pasos (cultivo, mes de siembra) en la línea de 36 meses.
+
+    Devuelve (cultivo, mes de inicio, mes de fin exclusivo), con los meses de la línea numerados desde 1 (1 = enero del
+    año 1). Cada cultivo empieza en la primera aparición de su mes de siembra que no sea anterior al fin del cultivo
+    previo. El inicio y el fin pueden pasar del mes 36: esos meses no se cuentan (comportamiento conocido §10.1).
+    """
+    from .crops import get
+    placed, free = [], 1
+    for crop_id, sow in rotation:
+        start = free + (sow - 1 - (free - 1)) % 12      # primer mes ≥ free cuyo mes del año es `sow`
+        end = start + get(crop_id).months
+        placed.append((crop_id, start, end))
+        free = end
+    return placed
+
+
+def family_repetition(rotation) -> float:
+    """RC-10: n.º de pasos seguidos con la misma familia + 0.5 × n.º de pasos con la misma familia separados por uno."""
+    from .crops import get
+    fam = [get(c).family for c, _ in rotation]
+    seguidos = sum(fam[i] == fam[i + 1] for i in range(len(fam) - 1))
+    separados = sum(fam[i] == fam[i + 2] for i in range(len(fam) - 2))
+    return seguidos + NONCONSECUTIVE_REPEAT * separados
+
+
+def evaluate_rotation(rotation, clim: pd.DataFrame, inputs: FarmInputs) -> dict:
+    """RC-10: los datos de una rotación (3 pasos) antes de puntuarla (RC-11)."""
+    from .crops import FALLOW_ID, get
+    placed = place_rotation(rotation)
+    owner = {}                                  # mes de la línea → cultivo que lo ocupa (solo hasta el mes 36)
+    for crop_id, start, end in placed:
+        for t in range(start, min(end, TIMELINE_MONTHS + 1)):
+            owner[t] = crop_id
+    slope = SLOPE_FACTOR[inputs.slope_class]
+    agua_mm = helada = calor = erosion = 0.0
+    bare = 0
+    for t in range(placed[0][1], TIMELINE_MONTHS + 1):     # desde el primer mes ocupado hasta el 36
+        row = clim.loc[(t - 1) % 12 + 1]
+        lluvia = row["lluvia"]
+        crop_id = owner.get(t)
+        if crop_id is None:
+            erosion += (lluvia / 100) * slope + BARE_EROSION
+            bare += 1
+            continue
+        crop = get(crop_id)
+        agua_mm += max(0.0, row["et0"] * crop.kc - effective_rain(lluvia))
+        helada += (row["dias_helada"] + 2 * row["dias_helada_fuerte"]) * crop.frost_sens
+        calor += row["dias_calor"] * crop.heat_sens
+        erosion += (lluvia / 100) * slope * (1 - crop.cover)
+
+    apts = [FALLOW_APTITUDE if c == FALLOW_ID else crop_suitability(get(c), m, clim, inputs)["aptitud"]
+            for c, m in rotation]
+    crops = [get(c) for c, _ in rotation]
+    return {
+        "placed": placed,
+        "aptitud": sum(apts) / len(apts),
+        "aptitud_min": min(apts),
+        "agua_m3ha": agua_mm * 10,
+        "helada": helada,
+        "calor": calor,
+        "clima": helada + calor,
+        "erosion": erosion,
+        "sal": sum((1 - c.salt_tol) * inputs.salt_level for c in crops),
+        "nitrogeno": sum(c.n for c in crops),
+        "ingreso": sum(c.market + (FORAGE_INCOME if c.forage else 0) for c in crops),
+        "repeticion": family_repetition(rotation),
+        "meses_desnudo": bare,
+    }
+
+
+# --- RC-11 Puntajes y total --------------------------------------------------------------------------------------
+
+LOW_APTITUDE_MIN = 40           # si la aptitud mínima de la rotación es menor, el total × 0.85
+LOW_APTITUDE_FACTOR = 0.85
+SALT_WEIGHT = 2                 # la sal pesa 2 (solo cuenta si el nivel de sal no es «baja»)
+SCORE_KEYS = ("aptitud", "agua", "suelo", "plagas", "clima", "ingresos", "erosion", "sal")
+
+
+def _relative(values: list[float]) -> list[float]:
+    """Relativo (menos es mejor): 100 − 60 × (v − mín) / máx. Si el máximo es 0, todas reciben 100."""
+    lo, hi = min(values), max(values)
+    if hi == 0:
+        return [100.0] * len(values)
+    return [100 - 60 * (v - lo) / hi for v in values]
+
+
+def _over_range(values: list[float], more_is_better: bool) -> list[float]:
+    """Sobre el rango: 40 + 60 × (v − mín)/(máx − mín) si más es mejor; 100 − 60 × (v − mín)/(máx − mín) si menos.
+    Si máx = mín, todas reciben 100."""
+    lo, hi = min(values), max(values)
+    if hi == lo:
+        return [100.0] * len(values)
+    frac = [(v - lo) / (hi - lo) for v in values]
+    return [40 + 60 * f for f in frac] if more_is_better else [100 - 60 * f for f in frac]
+
+
+def score_rotations(evals: list[dict], inputs: FarmInputs) -> list[dict]:
+    """RC-11: puntajes de cada rotación DENTRO del grupo `evals` (salidas de evaluate_rotation) y su total.
+
+    Devuelve, en el mismo orden, {'scores': {criterio: puntaje}, 'total': float}. Total = promedio ponderado por las
+    prioridades del usuario; la sal (peso 2) solo entra si el nivel de sal no es «baja».
+    """
+    cols = {
+        "aptitud": [e["aptitud"] for e in evals],
+        "agua": _relative([e["agua_m3ha"] for e in evals]),
+        "suelo": _over_range([e["nitrogeno"] for e in evals], more_is_better=True),
+        "plagas": _over_range([e["repeticion"] for e in evals], more_is_better=False),
+        "clima": _relative([e["clima"] for e in evals]),
+        "ingresos": _over_range([e["ingreso"] for e in evals], more_is_better=True),
+        "erosion": _relative([e["erosion"] for e in evals]),
+    }
+    weights = {k: inputs.priorities[k] for k in cols}
+    if inputs.salt != "baja":
+        cols["sal"] = _relative([e["sal"] for e in evals])
+        weights["sal"] = SALT_WEIGHT
+    wsum = sum(weights.values())
+    out = []
+    for i, e in enumerate(evals):
+        scores = {k: cols[k][i] for k in SCORE_KEYS if k in cols}
+        total = sum(weights[k] * scores[k] for k in scores) / wsum if wsum else 0.0
+        if e["aptitud_min"] < LOW_APTITUDE_MIN:
+            total *= LOW_APTITUDE_FACTOR
+        out.append({"scores": {k: float(v) for k, v in scores.items()}, "total": float(total)})
+    return out
