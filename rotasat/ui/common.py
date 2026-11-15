@@ -36,9 +36,11 @@ def tr(es: str, **values) -> str:
 
 
 def go(view: str) -> None:
-    """Cambia de vista y cierra el panel abierto (RF-03)."""
+    """Cambia de vista y cierra el panel abierto (RF-03). `entered` avisa a la vista que se acaba de entrar a ella
+    (Clima la usa para pedir la ubicación al entrar, RF-41); cambiar de idioma no la marca (RF-62)."""
     st.session_state.view = view
     st.session_state.panel = None
+    st.session_state.entered = view
 
 
 def _toggle_lang() -> None:
@@ -64,7 +66,8 @@ CSS = f"""
 .st-key-lang_btn {{ align-self: flex-end; margin-left: auto; }}
 .rs-home-title {{ text-align: center; }}
 .rs-home-title .rs-logo {{ font-size: 4rem; line-height: 1; }}
-[class*="st-key-bar_"] button {{ min-height: 3.2rem; }}
+[class*="st-key-bar_"] button {{ min-height: 3.2rem; padding-left: .35rem; padding-right: .35rem; }}
+[class*="st-key-bar_"] button p {{ word-break: normal; overflow-wrap: normal; hyphens: none; }}
 </style>
 """
 

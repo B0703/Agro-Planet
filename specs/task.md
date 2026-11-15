@@ -23,6 +23,6 @@ Orden: primero el motor sin red, luego los datos y al final la interfaz.
 | **T16** ✅ | Vista Mi terreno: buscador, mapa, línea del lugar, aviso de preliminar y reintento | RF-10 a RF-22 | T14, T15, T07 | CA-02, CA-08 |
 | **T17** ✅ | Paneles del terreno: Clima, Qué sembrar, Rotaciones, WhatsApp, Mis datos, Ayuda | RF-30 a RF-32, RF-34 a RF-36 | T12, T16 | CA-03 (terreno), CA-05 desde la interfaz |
 | **T18** ✅ | NDVI (panel Satélite) y SoilGrids (botón en Mis datos) | RF-33, RC-16, RC-19 | T17 | CA-12 |
-| **T19** | Vista Clima: pedido de GPS, plazo de 15 s y paso a escribir la ubicación | RF-40 a RF-45, RNF-09 | T16 | CA-07 |
+| **T19** ✅ | Vista Clima: pedido de GPS, plazo de 15 s y paso a escribir la ubicación | RF-40 a RF-45, RNF-09 | T16 | CA-07 |
 | **T20** | Paneles del clima, incluido el río Ica | RF-51 a RF-57, RC-18 | T19 | CA-03 (clima) |
 | **T21** | Cierre: cambio de idioma de punta a punta, prueba a 390 px y revisión de fallos de servicios | CA-09, CA-11, RNF-04, RNF-05 | T17 a T20 | Todos los CA pasan |

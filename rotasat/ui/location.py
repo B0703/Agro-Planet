@@ -8,6 +8,8 @@ así cambia con el idioma (RF-16).
 """
 from __future__ import annotations
 
+import time
+
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
@@ -28,6 +30,7 @@ PERU_CENTER, PERU_ZOOM = (-9.5, -75.0), 5
 PLACE_ZOOM = 14
 MARK_COLOR = "#FFD400"          # círculo amarillo sobre el terreno
 POLL_SECONDS = 6                # RF-21
+GPS_TIMEOUT = 15                # s sin respuesta del navegador → «tardó demasiado» (RF-42)
 
 # Códigos de error de navigator.geolocation (streamlit_js_eval) → motivo del Anexo C.3.
 GEO_ERRORS = {0: "no_soportado", 1: "denegado", 2: "no_disponible", 3: "tiempo"}
@@ -87,8 +90,9 @@ def _choose(slot: str, r: dict) -> None:
     set_place(slot, r["lat"], r["lon"], place.SEARCH, r["name"])
 
 
-def search_box(slot: str) -> None:
-    """Campo de texto, «🔍 Buscar» y «📍 Mi ubicación» en una fila. Enter envía la búsqueda (formulario)."""
+def search_box(slot: str, show_gps: bool = True) -> None:
+    """Campo de texto, «🔍 Buscar» y «📍 Mi ubicación» en una fila. Enter envía la búsqueda (formulario).
+    Con `show_gps=False` el estado del GPS (aviso de espera o motivo del fallo) lo dibuja quien llama, con gps()."""
     left, right = st.columns([5, 1.5], vertical_alignment="bottom")
     with left:
         with st.form(_k(slot, "search"), border=False, enter_to_submit=True):
@@ -98,11 +102,8 @@ def search_box(slot: str) -> None:
                                  label_visibility="collapsed")
             submitted = c2.form_submit_button(tr("Buscar"), icon="🔍", width="stretch")
     with right:
-        if st.button(tr("Mi ubicación"), icon="📍", key=_k(slot, "gps_btn"), width="stretch",
-                     help=tr("Usar la ubicación de este dispositivo (GPS)")):
-            st.session_state[_k(slot, "gps_n")] = st.session_state.get(_k(slot, "gps_n"), 0) + 1
-            st.session_state[_k(slot, "gps")] = True
-            st.session_state[_k(slot, "gps_error")] = None
+        st.button(tr("Mi ubicación"), icon="📍", key=_k(slot, "gps_btn"), width="stretch",
+                  help=tr("Usar la ubicación de este dispositivo (GPS)"), on_click=start_gps, args=(slot,))
     if submitted:
         _search(slot, text)
 
@@ -111,19 +112,47 @@ def search_box(slot: str) -> None:
         st.markdown(tr("¿Cuál de estos lugares es?"))
         for i, r in enumerate(choices):
             st.button(r["name"], key=_k(slot, f"choice_{i}"), on_click=_choose, args=(slot, r))
-    gps(slot)
+    if show_gps:
+        gps(slot)
 
 
 # --- GPS (RF-13.4) -----------------------------------------------------------------------------------------------
 
+def start_gps(slot: str) -> None:
+    """Pide la ubicación al navegador. Solo se llama al tocar «📍 Mi ubicación» o al entrar a Clima (RNF-09)."""
+    st.session_state[_k(slot, "gps_n")] = st.session_state.get(_k(slot, "gps_n"), 0) + 1   # componente nuevo
+    st.session_state[_k(slot, "gps")] = True
+    st.session_state[_k(slot, "gps_t0")] = time.monotonic()
+    st.session_state[_k(slot, "gps_error")] = None
+
+
+def gps_pending(slot: str) -> bool:
+    return bool(st.session_state.get(_k(slot, "gps")))
+
+
+def gps_failed(slot: str) -> bool:
+    return bool(st.session_state.get(_k(slot, "gps_error")))
+
+
+@st.fragment(run_every=1)
+def _gps_watch(slot: str) -> None:
+    """RF-42: si el navegador no responde en 15 s, se deja de esperar y se pide escribir la ubicación."""
+    if gps_pending(slot) and time.monotonic() - st.session_state.get(_k(slot, "gps_t0"), 0) > GPS_TIMEOUT:
+        st.session_state[_k(slot, "gps")] = False
+        st.session_state[_k(slot, "gps_error")] = "tiempo"
+        st.rerun(scope="app")
+
+
 def gps(slot: str) -> None:
-    """Pide la ubicación al navegador solo después de tocar «📍 Mi ubicación» (RNF-09)."""
+    """Estado del pedido de ubicación: el motivo del último fallo («… Escriba su ubicación.») o, mientras espera, el
+    aviso y el componente que pregunta al navegador."""
     err = st.session_state.get(_k(slot, "gps_error"))
     if err:
         st.warning(gps_error(err, lang()))
-    if not st.session_state.get(_k(slot, "gps")):
+    if not gps_pending(slot):
         return
     st.info(tr("📍 Buscando su ubicación… Si el navegador le pregunta, elija **Permitir**."))
+    _gps_watch(slot)
     loc = get_geolocation(component_key=_k(slot, f"geo_{st.session_state.get(_k(slot, 'gps_n'), 0)}"))
     if loc is None:
         return                                  # el navegador aún no responde

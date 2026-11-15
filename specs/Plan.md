@@ -189,6 +189,16 @@ los pedidos se hacen de uno en uno.
   - El texto [957] usa `{error}` en español y un texto fijo en inglés. En español se pasa «SoilGrids no respondió o no
     tiene datos aquí», el mismo mensaje que trae el inglés.
   - El prefetch descarga NDVI de MODIS y de VIIRS, y el suelo de los 7 lugares.
+- **Vista Clima y GPS (T19):**
+  - `common.go()` marca `entered` con la vista a la que se entra. Clima lo usa para pedir la ubicación solo al entrar
+    sin lugar (RF-41, RNF-09). Cambiar de idioma no la marca, así que no se vuelve a pedir.
+  - Si ya hay lugar del Clima, se reutiliza (RF-45).
+  - `location.start_gps()` crea un componente nuevo de `streamlit_js_eval` en cada pedido. Un fragmento
+    (`run_every=1`) corta la espera a los 15 s con el motivo `tiempo` (RF-42). El plazo también rige para el botón
+    «📍 Mi ubicación» de Mi terreno, que antes podía esperar sin fin.
+  - «Cambiar de lugar» vuelve al buscador sin pedir otra vez la ubicación.
+  - «Ver qué puedo sembrar aquí» copia el lugar, con su forma y su nombre, a `terreno_place`.
+  - Las etiquetas de la barra de iconos se parten solo entre palabras (CSS).
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 
