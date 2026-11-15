@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Progress is tracked in `specs/task.md`; T01 (project skeleton) is done. The git repo has no commits yet.
+Progress is tracked in `specs/task.md`; T01–T02 are done. The git repo has no commits yet.
 
 ## Commands
 
