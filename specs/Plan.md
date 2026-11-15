@@ -151,6 +151,16 @@ los pedidos se hacen de uno en uno.
 - **Estado de la sesión:** `view`, `lang`, `panel`, `terreno_place`, `clima_place` y `overrides[(lat,lon)]`. El botón de
   idioma usa la clave de widget `lang_btn`, porque `lang` ya es una clave de la sesión. No se guarda nada entre sesiones
   (RNF-10).
+- **Elegir un lugar (T16):** `rotasat/ui/location.py` reúne el buscador, el GPS, el mapa, la línea del lugar y los
+  avisos de lluvia. Lo usan Mi terreno y Clima, cada una con su clave de sesión (`terreno_place`, `clima_place`), así los
+  dos lugares son independientes (RF-45). Un lugar es `{lat, lon, kind, name}` y el texto de RF-16 se arma en cada
+  ejecución, así cambia con el idioma. Detalles:
+  - El buscador va en un `st.form` para que Enter lo envíe.
+  - El mapa usa como clave el punto marcado, para volver a centrarse cuando cambia el lugar.
+  - El clima de cada punto se guarda en `st.session_state.place_climate` y se vuelve a armar cuando cambia el estado de
+    la descarga de CHIRPS.
+  - El sondeo de RF-21 es un `st.fragment(run_every=6)` que actualiza la página solo si no hay un panel abierto.
+  - Los códigos de error del GPS: 1 → `denegado`, 2 → `no_disponible`, 3 → `tiempo` y 0 → `no_soportado`.
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 

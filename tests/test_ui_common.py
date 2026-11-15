@@ -9,6 +9,8 @@ from rotasat.i18n import t
 from rotasat.ui import panels_clima, panels_terreno
 
 APP = str(Path(__file__).resolve().parent.parent / "app_simple.py")
+# Un lugar ya marcado (Ica está en data/cache/, así que se abre sin red).
+ICA = {"lat": -14.13, "lon": -75.7, "kind": "coords", "name": "Pueblo Nuevo, Ica"}
 
 
 def app() -> AppTest:
@@ -63,7 +65,7 @@ def test_terreno_bar_disabled_until_place_is_marked():
 def test_icon_opens_one_panel_at_a_time():
     at = app()
     button(at, "home_terreno").click().run()
-    at.session_state.terreno_place = {"lat": -14.13, "lon": -75.7}       # el lugar se marca en T16
+    at.session_state.terreno_place = ICA       # el lugar se marca en T16
     at.run()
     bar = [b for b in at.button if b.key.startswith("bar_terreno_")]
     assert not any(b.disabled for b in bar)
@@ -77,7 +79,7 @@ def test_icon_opens_one_panel_at_a_time():
 def test_changing_view_closes_the_panel():
     at = app()
     button(at, "home_terreno").click().run()
-    at.session_state.terreno_place = {"lat": -14.13, "lon": -75.7}
+    at.session_state.terreno_place = ICA
     at.run()
     button(at, "bar_terreno_clima").click().run()
     button(at, "home_back").click().run()
@@ -92,12 +94,12 @@ def test_language_toggle_keeps_view_and_place():
     assert button(at, "lang_btn").label == "🌐 Español"
     assert [b.label for b in at.button if b.key.startswith("home_")] == ["My field", "Climate"]
     button(at, "home_terreno").click().run()
-    at.session_state.terreno_place = {"lat": -14.13, "lon": -75.7}
+    at.session_state.terreno_place = ICA
     at.run()
     assert "### 🗺️ My field" in [m.value for m in at.markdown]
     assert button(at, "home_back").label == "Home"
     button(at, "lang_btn").click().run()                                     # vuelve a español en la misma vista
-    assert at.session_state.view == "terreno" and at.session_state.terreno_place == {"lat": -14.13, "lon": -75.7}
+    assert at.session_state.view == "terreno" and at.session_state.terreno_place == ICA
     assert "### 🗺️ Mi terreno" in [m.value for m in at.markdown]
 
 

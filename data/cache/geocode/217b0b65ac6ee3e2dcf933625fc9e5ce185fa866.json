@@ -1,0 +1,1 @@
+{"service": "geocode", "params": {"op": "reverse", "lat": -14.1253, "lon": -75.6834}, "fetched_at": "2026-11-15T20:36:58+00:00", "data": {"address": {"village": "Pongo Grande", "city": "Pueblo Nuevo", "region": "Ica", "state": "Ica", "ISO3166-2-lvl4": "PE-ICA", "country": "Perú", "country_code": "pe"}}}
