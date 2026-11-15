@@ -1,8 +1,10 @@
 """Secciones del clima de un lugar, compartidas por el panel Clima del terreno (RF-30, T17) y los paneles de la vista
 Clima (RF-51 a RF-57, T20): resumen (RC-15), calendario de riesgos, lluvia y evaporación, temperatura y heladas,
-humedad del suelo (RC-17), tendencia y «sobre los datos». El río Ica (RF-56, RC-18) llega en T20.
+humedad del suelo (RC-17), tendencia, río Ica (RF-56, RC-18) y «sobre los datos».
 """
 from __future__ import annotations
+
+from datetime import date
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -175,6 +177,56 @@ def trend(pc: climate.PlaceClimate, region: str) -> None:
     d = agro.tmax_change(y)
     st.markdown(tr("Entre 2005–2009 y 2020–2024 la temperatura máxima media **{direccion} {d_abs:.1f} °C**.",
                    direccion=tr("subió") if d > 0 else tr("bajó"), d_abs=abs(d)))
+
+
+# --- RF-56 Río Ica (RC-18) --------------------------------------------------------------------------------------
+
+BASIN_NAME = "cuenca alta de Huancavelica (Choclococha)"    # nombre propio: no se traduce (RF-63)
+RIVER_LEVEL_TEXT = {"seco": "🔴 **Año seco**: priorizar cultivos de bajo consumo de agua.",
+                    "ligeramente": "🟡 **Ligeramente seco**.", "normal": "🟢 **Año normal o húmedo**."}
+
+
+def _today() -> date:
+    return date.today()
+
+
+def season_label(end_year: int) -> str:
+    """Temporada que termina en abril de `end_year`: «2025–26» (igual en los dos idiomas)."""
+    return f"{end_year - 1}–{end_year % 100:02d}"
+
+
+def show_river(region: str, lat: float, lon: float) -> bool:
+    return agro.in_ica_basin(region, lat, lon)
+
+
+def river() -> None:
+    """Texto, cifra de la última temporada con su diferencia frente al promedio, semáforo y barras del histórico."""
+    st.markdown(tr("El agua del río Ica nace como lluvia en la {cuenca}. Si allá llueve poco, el río trae poco y se "
+                   "depende más de los pozos de un acuífero ya sobreexplotado.", cuenca=BASIN_NAME))
+    last = agro.last_river_season(_today())
+    end = date(last, agro.RIVER_SEASON_END, 30)
+    lat, lon = agro.RIVER_POINT
+    series = chirps.river_cached(lat, lon, end)
+    if series is None:
+        try:
+            with st.spinner(tr("Calculando la lluvia de la cuenca alta…")):
+                series = chirps.river_download(lat, lon, end)
+        except SourceError:
+            st.warning(tr("No se pudo calcular la lluvia de la cuenca alta en este momento."))
+            return
+    seasons = agro.river_seasons(series["dates"], series["rain"], last)
+    out = agro.river_outlook(seasons)
+    st.metric(tr("Temporada {temporada}", temporada=season_label(out.season)), f"{out.total:,.0f} mm",
+              delta=tr("{delta:+.0f}% frente al promedio", delta=out.delta))
+    text = tr(RIVER_LEVEL_TEXT[out.level])
+    {"seco": st.error, "ligeramente": st.warning, "normal": st.success}[out.level](text)
+    labels = [season_label(y) for y in seasons.index]
+    fig = go.Figure()
+    fig.add_bar(x=labels, y=seasons.tolist(), marker_color=BLUE, showlegend=False)
+    fig.add_scatter(x=labels, y=[out.average] * len(labels), mode="lines", name=tr("promedio"),
+                    line=dict(color=GREY, dash="dash"))
+    fig.update_yaxes(title_text=tr("mm (setiembre a abril)"))
+    _plot(fig)
 
 
 # --- RF-57 Sobre los datos ---------------------------------------------------------------------------------------

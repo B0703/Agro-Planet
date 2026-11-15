@@ -6,7 +6,7 @@ de inmediato; la interfaz consulta `status()` cada 6 s (RF-21). Al terminar, los
 from __future__ import annotations
 
 import threading
-from datetime import date
+from datetime import date, timedelta
 
 from .. import cache
 from ..cache import SourceError
@@ -104,3 +104,42 @@ def status(lat: float, lon: float) -> str:
 def last_error(lat: float, lon: float) -> SourceError | None:
     with _guard:
         return _errors.get(_key(lat, lon))
+
+
+# --- Lluvia de la cuenca alta del río Ica (RC-18, T20) -------------------------------------------------------------
+
+RIVER_START = date(2005, 9, 1)          # inicio de la temporada 2005–06
+
+
+def _river_params(lat: float, lon: float, end: date) -> dict:
+    return {"lat": round(lat, 4), "lon": round(lon, 4), "start": RIVER_START.isoformat(), "end": end.isoformat(),
+            "half": climateserv.HALF_CHIRPS}
+
+
+def river_cached(lat: float, lon: float, end: date) -> dict | None:
+    """Serie diaria CHIRPS de setiembre de 2005 a `end`, o None. Nunca consulta la red."""
+    return cache.load(SERVICE, _river_params(lat, lon, end))
+
+
+RIVER_CHUNK_YEARS = 10                  # ClimateSERV rechaza pedidos de más de ~20 años: se piden tramos de 10
+
+
+def _river_fetch(lat: float, lon: float, end: date) -> dict:
+    dates: list[str] = []
+    rain: list = []
+    start = RIVER_START
+    while start <= end:
+        stop = min(date(start.year + RIVER_CHUNK_YEARS, 1, 1) - timedelta(days=1), end)
+        part = climateserv.fetch_daily(SERVICE, DATATYPE, lat, lon, start, stop, half=climateserv.HALF_CHIRPS,
+                                       max_seconds=MAX_SECONDS)
+        dates += part["dates"]
+        rain += part["rain"]
+        start = stop + timedelta(days=1)
+    return {"dates": dates, "rain": rain}
+
+
+def river_download(lat: float, lon: float, end: date) -> dict:
+    """Descarga bloqueante (la usan el panel del río y scripts/prefetch.py), en tramos que se guardan juntos como una
+    sola respuesta. `end` es el 30 de abril de la última temporada: la clave de la caché cambia una vez al año."""
+    lat, lon = round(lat, 4), round(lon, 4)
+    return cache.get_or_fetch(SERVICE, _river_params(lat, lon, end), lambda: _river_fetch(lat, lon, end))

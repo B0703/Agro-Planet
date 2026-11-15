@@ -1,5 +1,5 @@
 """Vista Clima (RF-40 a RF-45). T15: cabecera y barra. T19: pedido de GPS al entrar, plazo de 15 s, paso a escribir la
-ubicación, cifras y resumen del lugar, y los botones de RF-44. El contenido de los paneles llega en T20.
+ubicación, cifras y resumen del lugar, y los botones de RF-44. T20: los paneles (RF-51 a RF-57).
 
 El lugar del Clima (`clima_place`) es independiente del de Mi terreno (RF-45).
 """
@@ -11,7 +11,7 @@ from . import climate_sections as cs
 from . import location, panels_clima
 from .common import CLIMA, TERRENO, go, header, icon_bar, show_panel, tr
 
-SLOT = "clima_place"
+SLOT = panels_clima.SLOT
 TYPING = f"{SLOT}_typing"          # el usuario tocó «Cambiar de lugar»: se escribe, sin pedir el GPS otra vez
 
 
@@ -75,9 +75,11 @@ def render() -> None:
     _metrics(pc)
     cs.summary(pc)
     st.caption(tr("Toque un icono para ver el detalle:"))
-    icon_bar(CLIMA, panels_clima.PANELS, enabled=True)
+    p = location.get_place(SLOT)
+    panels = panels_clima.panels_for(location.region_of(SLOT, pc), p["lat"], p["lon"])
+    icon_bar(CLIMA, panels, enabled=True)
     left, right = st.columns(2)
     left.button(tr("Ver qué puedo sembrar aquí"), icon="🌱", key="clima_to_terreno", on_click=_to_terreno,
                 width="stretch")
     right.button(tr("Cambiar de lugar"), icon="✏️", key="clima_change", on_click=_change_place, width="stretch")
-    show_panel(panels_clima.PANELS)
+    show_panel(panels)

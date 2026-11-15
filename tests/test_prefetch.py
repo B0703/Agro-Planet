@@ -32,6 +32,8 @@ def fake_sources(monkeypatch, no_network):
         monkeypatch.setattr(mod, fn, rec(f"{mod.__name__.rsplit('.', 1)[-1]}.{fn}"))
     monkeypatch.setattr(prefetch.ndvi, "series",
                         lambda lat, lon, product: calls.append((f"ndvi.{product}", lat)) or {"ok": True})
+    monkeypatch.setattr(prefetch.chirps, "river_download",
+                        lambda lat, lon, end: calls.append(("chirps.river_download", lat)) or {"ok": True})
     monkeypatch.setattr(prefetch.climate, "build", lambda lat, lon, start_download: SimpleNamespace(
         correction=SimpleNamespace(coast=lat == -14.13)))
     return calls
@@ -45,7 +47,7 @@ def test_sites_are_annex_b():
 def test_check_on_empty_cache_reports_everything_missing_without_network(no_network):
     lines = []
     missing = prefetch.run({"Ica": (-14.13, -75.7)}, check=True, out=lines.append)
-    assert missing == 8                  # POWER diario, SRTM, humedad, lluvia, nombre, NDVI ×2 y suelo
+    assert missing == 9                  # POWER diario, SRTM, humedad, lluvia, nombre, NDVI ×2, suelo y río Ica
     assert all("falta en la caché" in x for x in lines[1:])
     assert prefetch.http.get_json is not prefetch._offline   # la red queda como estaba
 
@@ -55,7 +57,7 @@ def test_coast_downloads_imerg_and_others_chirps(fake_sources):
     names = [n for n, _ in fake_sources]
     extra = ["ndvi.modis", "ndvi.viirs", "soilgrids.estimate"]
     assert names == ["power.daily", "srtm.terrain", "power.soil_moisture", "imerg.download", "geocode.point_name",
-                     *extra, "power.daily", "srtm.terrain", "power.soil_moisture", "chirps.download",
+                     *extra, "chirps.river_download", "power.daily", "srtm.terrain", "power.soil_moisture", "chirps.download",
                      "geocode.point_name", *extra]
 
 
@@ -95,3 +97,11 @@ def test_soil_without_data_in_town_counts_as_saved(no_network, monkeypatch):
                         lambda *a, **k: (_ for _ in ()).throw(cache.SourceError("soilgrids", "sin conexión")))
     with pytest.raises(cache.SourceError):
         prefetch._soil(-12.0, -75.0)
+
+
+def test_river_basin_only_for_sites_in_the_ica_box(fake_sources):
+    """RC-18 / T20: la lluvia de la cuenca alta se descarga una vez, en el punto de referencia, solo para Ica."""
+    assert [n for n, _ in prefetch.steps(-14.13, -75.7)][-1] == "Lluvia de la cuenca alta del río Ica (CHIRPS)"
+    assert all("río Ica" not in n for n, _ in prefetch.steps(-12.06, -75.29) if isinstance(n, str))
+    prefetch.run({"Ica": (-14.13, -75.7)}, out=lambda _: None)
+    assert ("chirps.river_download", -13.15) in fake_sources

@@ -166,8 +166,7 @@ los pedidos se hacen de uno en uno.
     RC-09 y rotaciones RC-12. Lo guarda en la sesión y lo recalcula solo cuando cambian las respuestas o la lluvia.
   - Las respuestas se guardan en `overrides[(lat, lon)]`, solo con lo que el usuario cambió (RC-07).
   - `rotasat/ui/climate_sections.py` tiene las secciones de RF-51 a RF-55 y RF-57. Las usan el panel Clima del terreno
-    (RF-30) y, en T20, los paneles de la vista Clima. El río (RF-56) y el panel Satélite con el botón de SoilGrids
-    quedan para T20 y T18.
+    (RF-30) y los paneles de la vista Clima (T20), además del río (RF-56).
   - Los controles de «Mis datos» llevan en su clave una versión que sube con cada respuesta. Así se vuelven a crear con
     los valores ya recalculados; por ejemplo, el riego por defecto de la región nueva.
   - Los `format_func` usan el idioma capturado al dibujar (`t(..., lg)`), nunca `tr()`. Streamlit y `AppTest` pueden
@@ -199,6 +198,19 @@ los pedidos se hacen de uno en uno.
   - «Cambiar de lugar» vuelve al buscador sin pedir otra vez la ubicación.
   - «Ver qué puedo sembrar aquí» copia el lugar, con su forma y su nombre, a `terreno_place`.
   - Las etiquetas de la barra de iconos se parten solo entre palabras (CSS).
+- **Paneles del clima y río Ica (T20):**
+  - `rotasat/ui/panels_clima.py` dibuja cada panel con las secciones de `climate_sections`, sobre `clima_place`.
+    `panels_for()` quita el 💧 Río de la barra fuera de la cuenca (RC-18), y el panel Clima del terreno muestra el plegado
+    del río solo en ella. La región es la efectiva (la de «Mis datos» si el usuario la cambió).
+  - Lluvia del río: CHIRPS (`datatype=0`, medio lado 0.025°) en el punto −13.15, −75.07, del 1 de setiembre de 2005 al
+    30 de abril de la última temporada. Así la clave de la caché cambia una vez al año, en mayo. ClimateSERV rechaza los
+    pedidos de más de ~20 años («el servicio informó un error»), así que se pide en tramos de 10 años y se guarda junto
+    como una sola respuesta. Tarda unos 70 s. Si no está guardada, el panel la descarga con el aviso «Calculando la lluvia
+    de la cuenca alta…»; si falla, muestra el aviso del Anexo C.
+  - Temporada: se rotula «2025–26» en los dos idiomas (la forma que usa el Spec). Los días sin dato se ignoran. El
+    histórico de barras va de 2005–06 a la última temporada y la línea punteada es el promedio de 2005–06 a 2023–24.
+  - Semáforo: `st.error` (seco), `st.warning` (ligeramente seco) y `st.success` (normal o húmedo).
+  - El prefetch descarga el río para los lugares dentro de la caja de la cuenca (solo Ica entre los 7).
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 

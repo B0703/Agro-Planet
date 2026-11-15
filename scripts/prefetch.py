@@ -8,18 +8,20 @@ Las peticiones van una por una, porque ClimateSERV responde 503 con varias en pa
 lugar e IMERG unos 7 min. Lo que ya está guardado no se vuelve a pedir (cache.get_or_fetch), así que el script se puede
 cortar y volver a lanzar. En la costa se descarga IMERG; la app nunca lo descarga sola (Spec §10.2).
 
-Pendiente: cuando exista la lluvia de la cuenca del río Ica (T20), su paso se agrega a `steps()`.
+Los lugares dentro de la caja de la cuenca de Ica (RC-18) descargan además la lluvia de la cuenca alta (T20), hasta la
+última temporada según la fecha de hoy.
 """
 from __future__ import annotations
 
 import argparse
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from rotasat import cache, climate  # noqa: E402
+from rotasat import agro, cache, climate  # noqa: E402
 from rotasat.sources import chirps, geocode, http, imerg, ndvi, power, soilgrids, srtm  # noqa: E402
 
 # Anexo B: nombre → (lat, lon).
@@ -57,6 +59,16 @@ def _soil(lat: float, lon: float):
         raise
 
 
+def river_basin():
+    """RC-18: CHIRPS en el punto de la cuenca alta, de setiembre de 2005 hasta abril de la última temporada."""
+    end = date(agro.last_river_season(date.today()), agro.RIVER_SEASON_END, 30)
+    return chirps.river_download(*agro.RIVER_POINT, end)
+
+
+def in_river_box(lat: float, lon: float) -> bool:
+    return agro.RIVER_LAT[0] <= lat <= agro.RIVER_LAT[1] and agro.RIVER_LON[0] <= lon <= agro.RIVER_LON[1]
+
+
 def steps(lat: float, lon: float) -> list[tuple[str, object]]:
     """Pasos de un lugar, en orden: (nombre, función sin argumentos). El de la lluvia depende de los dos primeros."""
     def rain():
@@ -69,7 +81,7 @@ def steps(lat: float, lon: float) -> list[tuple[str, object]]:
         except cache.SourceError:
             return "lluvia satelital"
 
-    return [
+    out = [
         ("NASA POWER (diario)", lambda: power.daily(lat, lon)),
         ("NASA SRTM", lambda: srtm.terrain(lat, lon)),
         ("NASA POWER (humedad del suelo)", lambda: power.soil_moisture(lat, lon)),
@@ -79,6 +91,9 @@ def steps(lat: float, lon: float) -> list[tuple[str, object]]:
         ("NDVI VIIRS (ORNL)", lambda: ndvi.series(lat, lon, "viirs")),
         ("Suelo (SoilGrids)", lambda: _soil(lat, lon)),
     ]
+    if in_river_box(lat, lon):
+        out.append(("Lluvia de la cuenca alta del río Ica (CHIRPS)", river_basin))
+    return out
 
 
 def _offline(*_a, **_k):

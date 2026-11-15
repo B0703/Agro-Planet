@@ -909,3 +909,57 @@ def ph_class(ph: float) -> str:
     if ph <= 7.5:
         return "neutro"
     return "alcalino"
+
+
+# --- RC-18 Lluvia que alimenta el río Ica ------------------------------------------------------------------------
+
+RIVER_LAT = (-15.2, -13.4)      # caja de la cuenca de Ica (solo en la costa)
+RIVER_LON = (-76.4, -75.2)
+RIVER_POINT = (-13.15, -75.07)  # punto de referencia en la cuenca alta
+RIVER_SEASON_START = 9          # temporada: 1 de setiembre al 30 de abril
+RIVER_SEASON_END = 4
+RIVER_AVG_FIRST, RIVER_AVG_LAST = 2006, 2024   # promedio: 19 temporadas, de 2005–06 a 2023–24 (año de abril)
+RIVER_DRY = -15.0               # % frente al promedio: menor → año seco
+RIVER_NORMAL = -5.0             # mayor → normal o húmedo; entre ambos → ligeramente seco
+
+
+def in_ica_basin(region: str, lat: float, lon: float) -> bool:
+    """RC-18: el río se muestra solo en la costa y dentro de la caja de la cuenca de Ica."""
+    return (region == "costa" and RIVER_LAT[0] <= lat <= RIVER_LAT[1]
+            and RIVER_LON[0] <= lon <= RIVER_LON[1])
+
+
+def last_river_season(today) -> int:
+    """Año (de abril) de la última temporada: la que terminó en abril de este año si ya es mayo o después; si no, la
+    del año anterior."""
+    return today.year if today.month >= RIVER_SEASON_END + 1 else today.year - 1
+
+
+def river_seasons(dates: list[str], rain: list, last: int) -> pd.Series:
+    """Lluvia de cada temporada (setiembre a abril), indexada por el año en que termina, de 2006 a `last`. Los días
+    sin dato se ignoran."""
+    s = pd.Series(rain, index=pd.to_datetime(dates, format="%Y%m%d"), dtype="float64")
+    m = s.index.month
+    s = s[(m >= RIVER_SEASON_START) | (m <= RIVER_SEASON_END)]
+    end_year = s.index.year + (s.index.month >= RIVER_SEASON_START)
+    out = s.groupby(end_year).sum(min_count=0).reindex(range(RIVER_AVG_FIRST, last + 1), fill_value=0.0)
+    out.index.name = "temporada"
+    return out
+
+
+@dataclass(frozen=True)
+class RiverOutlook:
+    season: int                 # año de abril de la última temporada
+    total: float                # mm de la última temporada
+    average: float              # mm, promedio de 2005–06 a 2023–24
+    delta: float                # % frente al promedio
+    level: str                  # "seco" | "ligeramente" | "normal"
+
+
+def river_outlook(seasons: pd.Series) -> RiverOutlook:
+    last = int(seasons.index[-1])
+    avg = float(seasons.loc[RIVER_AVG_FIRST:RIVER_AVG_LAST].mean())
+    total = float(seasons.loc[last])
+    delta = (total - avg) / avg * 100
+    level = "seco" if delta < RIVER_DRY else "normal" if delta > RIVER_NORMAL else "ligeramente"
+    return RiverOutlook(last, total, avg, delta, level)

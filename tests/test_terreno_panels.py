@@ -65,7 +65,7 @@ def test_clima_panel_summary_calendar_and_sections():
     assert "❄️ Días con riesgo de helada" in cal and "🟫 Humedad del suelo, raíces (%)" in cal
     assert [e.label for e in at.expander] == ["🌧️ Lluvia y evaporación", "🌡️ Temperatura y heladas",
                                               "🟫 Humedad del suelo", "📈 ¿Está cambiando el clima aquí?",
-                                              "🔬 Cómo se ajustaron los datos"]
+                                              "💧 ¿Traerá agua el río?", "🔬 Cómo se ajustaron los datos"]
     t = text(at)
     assert "**Fuente de la lluvia:** GPM IMERG → **49 mm al año**." in t
     assert "En la costa el modelo **no ve el riego**" in t

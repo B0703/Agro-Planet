@@ -46,7 +46,9 @@ def clima_body() -> None:
         cs.moisture(lat, lon, region)
     with st.expander(tr("📈 ¿Está cambiando el clima aquí?")):
         cs.trend(f.pc, region)
-    # «¿Traerá agua el río?» (solo en la cuenca de Ica, RC-18): T20.
+    if cs.show_river(region, lat, lon):            # RC-18: solo en la cuenca de Ica
+        with st.expander(tr("💧 ¿Traerá agua el río?")):
+            cs.river()
     with st.expander(tr("🔬 Cómo se ajustaron los datos")):
         cs.about(f.pc)
 
