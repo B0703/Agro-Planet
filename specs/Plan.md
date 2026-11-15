@@ -140,12 +140,19 @@ los pedidos se hacen de uno en uno.
 - **Factor limitante por temperatura:** «Muy frío» si la temperatura media más baja del ciclo es menor que el óptimo
   inferior; si no, «Muy caluroso». Agua: sin riego se usa el texto de «La lluvia solo cubre…»; con riego, «Necesita mucha
   agua de riego…».
-- **Panel lateral (RF-20):** se usa `st.dialog(width="large")` con CSS que lo fija a la derecha, con 640 px de ancho y 100 %
-  en pantallas angostas. Streamlit ya lo cierra con Esc, con la ✕ y con un clic fuera. Solo se abre uno a la vez.
+- **Panel lateral (RF-20):** se usa `st.dialog(título, width=640, position="right", on_dismiss=cerrar)`, que en
+  Streamlit 1.67 ya es un cajón modal de alto completo a la derecha; no hace falta CSS. En pantallas angostas se encoge
+  solo (a 390 px mide 366 px). Se cierra con Esc, con la ✕ o con un clic fuera, y `on_dismiss` borra `panel` de la sesión
+  para que no se vuelva a abrir en la siguiente ejecución. Solo hay uno abierto a la vez porque `panel` guarda una sola
+  clave. Verificado en Chrome a 1280 px y a 390 px (T15).
+- **Botones con texto de ayuda:** Streamlit los dibuja dos veces (con y sin tooltip) y muestra uno según la pantalla.
+  Las tarjetas de Inicio y el botón de idioma se ajustan con CSS sobre la clase `st-key-<clave>`. La barra de iconos usa
+  `width="stretch"` y `wrap=True`, para que ninguna etiqueta se corte (RNF-07).
+- **Estado de la sesión:** `view`, `lang`, `panel`, `terreno_place`, `clima_place` y `overrides[(lat,lon)]`. El botón de
+  idioma usa la clave de widget `lang_btn`, porque `lang` ya es una clave de la sesión. No se guarda nada entre sesiones
+  (RNF-10).
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
-- **Estado de la sesión:** `view`, `lang`, `terreno_place`, `clima_place` y `overrides[(lat,lon)]`. No se guarda nada entre
-  sesiones (RNF-10).
 
 ## 7. Estrategia de pruebas
 
