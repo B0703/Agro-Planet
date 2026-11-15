@@ -856,3 +856,56 @@ def soil_moisture_monthly(data: dict) -> pd.DataFrame:
     out = df.groupby("mes")[["superficie", "raices"]].mean().reindex(range(1, 13)) * 100
     out.index.name = "mes"
     return out
+
+
+# --- RC-16 Verdor del campo (NDVI) -------------------------------------------------------------------------------
+
+NDVI_SCALE = 0.0001             # MODIS y VIIRS entregan el NDVI × 10000
+NDVI_VALID_MIN = -2000          # por debajo es «sin dato» (MODIS usa −3000; VIIRS, −15000)
+BARE_SOIL_NDVI = 0.2            # filtrado < 0.2: suelo desnudo
+NDVI_WINDOW = 3                 # mediana móvil de 3 valores, centrada
+
+
+def ndvi_series(dates: list[str], raw: list) -> pd.DataFrame:
+    """RC-16: tabla por fecha con 'ndvi' (sin los valores sin dato) y 'filtrado' (mediana móvil de 3, centrada; los
+    extremos quedan sin valor, como hace pandas por defecto)."""
+    s = pd.Series([None if v is None or v < NDVI_VALID_MIN else v * NDVI_SCALE for v in raw],
+                  index=pd.to_datetime(dates), dtype="float64").dropna()
+    return pd.DataFrame({"ndvi": s, "filtrado": s.rolling(NDVI_WINDOW, center=True).median()})
+
+
+def bare_months(series: pd.DataFrame) -> list[int]:
+    """RC-16: meses del año (1–12, en orden) en que el NDVI filtrado baja de 0.2."""
+    low = series.index[series["filtrado"] < BARE_SOIL_NDVI]
+    return sorted(set(low.month))
+
+
+# --- RC-19 Estimación satelital del suelo ------------------------------------------------------------------------
+
+def soil_texture(clay_pct: float, sand_pct: float) -> str:
+    """RC-19: arcilla ≥ 40 % arcilloso; ≥ 27 % franco-arcilloso; si no, arena ≥ 70 % arenoso; ≥ 50 % franco-arenoso;
+    si no, franco."""
+    if clay_pct >= 40:
+        return "arcilloso"
+    if clay_pct >= 27:
+        return "franco-arcilloso"
+    if sand_pct >= 70:
+        return "arenoso"
+    if sand_pct >= 50:
+        return "franco-arenoso"
+    return "franco"
+
+
+PH_CLASS_TEXT = {"acido": "ácido", "lig": "ligeramente ácido", "neutro": "neutro", "alcalino": "alcalino"}  # Anexo C
+
+
+def ph_class(ph: float) -> str:
+    """RC-19: menor de 5.5 ácido; menor de 6.5 ligeramente ácido; hasta 7.5 neutro; mayor, alcalino.
+    Devuelve la clave del rango de pH de «Mis datos» (Anexo C.3)."""
+    if ph < 5.5:
+        return "acido"
+    if ph < 6.5:
+        return "lig"
+    if ph <= 7.5:
+        return "neutro"
+    return "alcalino"

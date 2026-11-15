@@ -8,7 +8,7 @@ Las peticiones van una por una, porque ClimateSERV responde 503 con varias en pa
 lugar e IMERG unos 7 min. Lo que ya está guardado no se vuelve a pedir (cache.get_or_fetch), así que el script se puede
 cortar y volver a lanzar. En la costa se descarga IMERG; la app nunca lo descarga sola (Spec §10.2).
 
-Pendiente: cuando existan ndvi.py (T18) y la lluvia de la cuenca del río Ica (T20), sus pasos se agregan a `steps()`.
+Pendiente: cuando exista la lluvia de la cuenca del río Ica (T20), su paso se agrega a `steps()`.
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rotasat import cache, climate  # noqa: E402
-from rotasat.sources import chirps, geocode, http, imerg, power, srtm  # noqa: E402
+from rotasat.sources import chirps, geocode, http, imerg, ndvi, power, soilgrids, srtm  # noqa: E402
 
 # Anexo B: nombre → (lat, lon).
 SITES: dict[str, tuple[float, float]] = {
@@ -45,6 +45,18 @@ def _rain(lat: float, lon: float):
     return "CHIRPS", lambda: chirps.download(lat, lon)
 
 
+def _soil(lat: float, lon: float):
+    """SoilGrids: si el punto y sus 4 vecinos ya están guardados y ninguno tiene dato (pasa en las ciudades, RC-19), el
+    paso está completo: sin red la app mostrará el mismo aviso de «sin dato» que con red."""
+    try:
+        return soilgrids.estimate(lat, lon)
+    except cache.SourceError:
+        points = [(0, 0), *soilgrids.NEARBY]
+        if all(cache.has(soilgrids.SERVICE, {"lat": round(lat + a, 4), "lon": round(lon + b, 4)}) for a, b in points):
+            return None
+        raise
+
+
 def steps(lat: float, lon: float) -> list[tuple[str, object]]:
     """Pasos de un lugar, en orden: (nombre, función sin argumentos). El de la lluvia depende de los dos primeros."""
     def rain():
@@ -63,6 +75,9 @@ def steps(lat: float, lon: float) -> list[tuple[str, object]]:
         ("NASA POWER (humedad del suelo)", lambda: power.soil_moisture(lat, lon)),
         (rain_name, rain),
         ("Nombre del lugar (OpenStreetMap)", lambda: geocode.point_name(lat, lon)),
+        ("NDVI MODIS (ORNL)", lambda: ndvi.series(lat, lon, "modis")),
+        ("NDVI VIIRS (ORNL)", lambda: ndvi.series(lat, lon, "viirs")),
+        ("Suelo (SoilGrids)", lambda: _soil(lat, lon)),
     ]
 
 

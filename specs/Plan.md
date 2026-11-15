@@ -174,6 +174,21 @@ los pedidos se hacen de uno en uno.
     llamarlos fuera de una ejecución de la app, donde `st.session_state` no existe.
   - Los bloques largos de Ayuda se buscan en el catálogo con `i18n.key_starting()`, que exige una sola coincidencia.
   - `st.info` y `st.warning` muestran el emoji inicial del texto como icono del aviso.
+- **NDVI y SoilGrids (T18):**
+  - El servicio de ORNL entrega como máximo 10 fechas por pedido. `sources/ndvi.py` pide primero las fechas del punto y
+    después la serie 2023–2024 en tandas de 10: 46 imágenes de MODIS en 5 pedidos y 65 de VIIRS en 7, porque VIIRS
+    llega solo hasta mayo de 2024. La serie entera se guarda como una sola respuesta en la caché.
+  - Los valores menores de −2000 se descartan (MODIS marca la falta de dato con −3000 y VIIRS con −15000).
+  - La mediana móvil centrada deja sin valor el primer y el último punto (pandas por defecto).
+  - Los meses pelados se listan por mes del año, en orden. El promedio es el de los valores crudos válidos.
+  - SoilGrids guarda en la caché cada punto consultado, también los que no tienen dato. La estimación (textura y pH
+    real) se guarda en `st.session_state.soil_estimates[(lat, lon)]` y entra en `resolve_inputs`, donde lo que escribe
+    el usuario manda.
+  - En «Mis datos», un pH estimado se muestra con su rango (RC-19).
+  - «Volver a los valores detectados» borra también la estimación.
+  - El texto [957] usa `{error}` en español y un texto fijo en inglés. En español se pasa «SoilGrids no respondió o no
+    tiene datos aquí», el mismo mensaje que trae el inglés.
+  - El prefetch descarga NDVI de MODIS y de VIIRS, y el suelo de los 7 lugares.
 - **Idioma:** se guarda en `st.session_state.lang`. Los textos se piden con `t(clave)` y **nunca** se escriben sueltos en la
   interfaz. Las claves del catálogo salen del Anexo C, y una prueba verifica que todas existen en ES y EN.
 

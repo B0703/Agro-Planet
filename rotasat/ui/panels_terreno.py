@@ -5,14 +5,17 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from .. import agro
+from ..cache import SourceError
 from ..crops import CROPS, FALLOW_ID, FIELD_CROPS, get
 from ..i18n import PH_VALUES, key_starting, month, options, t, vocab
 from . import climate_sections as cs
 from . import location
+from ..sources import ndvi, soilgrids
 from .common import Panel, lang, tr
 from .farm import crop_name, get_farm, level_color, limiting_text, overrides, reset_overrides, set_override
 
@@ -235,6 +238,69 @@ def rotaciones_body() -> None:
     st.info(tr("🤝 RotaSat **apoya, no reemplaza** la experiencia del agricultor ni la asesoría de un agrónomo."))
 
 
+# --- RF-33 Satélite (NDVI, RC-16) --------------------------------------------------------------------------------
+
+def _ndvi_chart(modis, viirs, lg: str) -> None:
+    fig = go.Figure()
+    fig.add_hrect(y0=-0.2, y1=agro.BARE_SOIL_NDVI, fillcolor="#C8A165", opacity=0.25, line_width=0,
+                  annotation_text=tr("suelo desnudo"), annotation_position="bottom left")
+    fig.add_scatter(x=modis.index, y=modis["ndvi"], mode="markers", name=tr("dato crudo"),
+                    marker=dict(color="#9C9C9C", size=6))
+    fig.add_scatter(x=modis.index, y=modis["filtrado"], mode="lines", name=tr("NDVI filtrado"),
+                    line=dict(color="#2E7D32", width=3))
+    if viirs is not None:
+        fig.add_scatter(x=viirs.index, y=viirs["filtrado"], mode="lines", name="VIIRS",       # nombre propio
+                        line=dict(color="#4E79A7", width=2, dash="dot"))
+    fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", y=-0.15))
+    # Marcas del eje con los meses del Anexo C: Plotly las pondría en inglés (RF-61).
+    ticks = pd.date_range("2023-01-01", "2025-01-01", freq="6MS")
+    fig.update_xaxes(tickvals=ticks, ticktext=[f"{month(d.month, lg, abbr=True)} {d.year}" for d in ticks])
+    fig.update_yaxes(title_text="NDVI", range=[-0.2, 1])
+    st.plotly_chart(fig, config=CHART, width="stretch")
+
+
+def satelite_body() -> None:
+    """RF-33: explica el NDVI; si no está guardado, un botón lo consulta. Gráfico, meses pelados y promedio; VIIRS
+    opcional. Si el servicio falla, un mensaje sencillo y el resto de la página sigue igual (CA-12)."""
+    f = _farm()
+    lg = lang()
+    lat, lon = f.key
+    st.markdown(tr("El índice **NDVI** del satélite MODIS mide qué tan verde está el terreno cada 16 días. Cuando baja "
+                   "de **0.2**, el suelo está prácticamente **desnudo**."))
+    data = ndvi.cached(lat, lon)
+    if data is None:
+        if not st.button(tr("Consultar el satélite (2023–2024)"), icon="🛰️", key=f"ndvi_btn_{f.key}",
+                         help=tr("Puede tardar si el servidor de la NASA está lento"), width="stretch"):
+            return
+        try:
+            with st.spinner(tr("Consultando MODIS…")):
+                data = ndvi.series(lat, lon)
+        except SourceError:
+            st.error(tr("El servidor de imágenes de la NASA (ORNL) no respondió. Inténtelo más tarde."))
+            return
+    modis = agro.ndvi_series(data["dates"], data["values"])
+    viirs_on = st.session_state.setdefault("viirs_on", set())
+    viirs_raw = ndvi.cached(lat, lon, "viirs") if f.key in viirs_on else None
+    viirs = agro.ndvi_series(viirs_raw["dates"], viirs_raw["values"]) if viirs_raw else None
+    _ndvi_chart(modis, viirs, lg)
+    months = agro.bare_months(modis)
+    lista = ", ".join(month(m, lg) for m in months) if months else tr("ninguno")
+    st.markdown(tr("**Meses con el campo pelado:** {lista} · NDVI promedio {ndvi:.2f}", lista=lista,
+                   ndvi=modis["ndvi"].mean()))
+    st.caption(tr("Un píxel de 250 m puede mezclar varias parcelas, caminos o cerros. Marque el centro de su campo."))
+    with st.expander(tr("🛰️ Comparar con VIIRS, el sucesor de MODIS (opcional)"), expanded=viirs is not None):
+        st.caption(tr("Los satélites de MODIS están al final de su vida útil; VIIRS (500 m) asegura la continuidad. En "
+                      "este servicio VIIRS tiene datos hasta mayo de 2024."))
+        if viirs is None and st.button(tr("Agregar VIIRS"), key=f"viirs_btn_{f.key}"):
+            try:
+                with st.spinner(tr("Consultando VIIRS…")):
+                    ndvi.series(lat, lon, "viirs")
+                viirs_on.add(f.key)
+                st.rerun()
+            except SourceError:
+                st.warning(tr("VIIRS no está disponible ahora. La app sigue funcionando con MODIS."))
+
+
 # --- RF-34 WhatsApp ----------------------------------------------------------------------------------------------
 
 def whatsapp_body() -> None:
@@ -269,12 +335,48 @@ def _set_priority(key, crit: str, widget_key: str) -> None:
 
 
 def _reset(key) -> None:
+    """«Volver a los valores detectados»: borra las respuestas y la estimación de SoilGrids de ese lugar."""
     reset_overrides(key)
+    st.session_state.setdefault("soil_estimates", {}).pop(key, None)
+    st.session_state.setdefault("soil_errors", {}).pop(key, None)
     st.session_state.md_ver = st.session_state.get("md_ver", 0) + 1
 
 
 def _ph_key(ph: float | None) -> str:
-    return next((k for k, v in PH_VALUES.items() if v == ph), "nose")
+    """Rango de pH que se muestra: el elegido por el usuario o, para un pH estimado por SoilGrids, su clase (RC-19)."""
+    if ph is None:
+        return "nose"
+    return next((k for k, v in PH_VALUES.items() if v == ph), None) or agro.ph_class(ph)
+
+
+# Motivo que se pone en «{error}. Indique su suelo a mano arriba.»; en inglés el texto del Anexo C ya lo trae.
+SOIL_ERROR = "SoilGrids no respondió o no tiene datos aquí"
+
+
+def _soil_button(f, lg: str) -> None:
+    """RC-19: a pedido, estima textura y pH con SoilGrids. Lo que escribe el usuario manda (resolve_inputs)."""
+    estimates = st.session_state.setdefault("soil_estimates", {})
+    errors = st.session_state.setdefault("soil_errors", {})
+    if st.button(tr("Estimar mi suelo con satélite (SoilGrids)"), icon="🛰️", key=_wkey(f, "soilgrids"),
+                 width="stretch"):
+        try:
+            with st.spinner(tr("Consultando SoilGrids…")):
+                estimates[f.key] = soilgrids.estimate(*f.key)
+            errors.pop(f.key, None)
+        except SourceError:
+            errors[f.key] = True
+        st.session_state.md_ver = st.session_state.get("md_ver", 0) + 1
+        st.rerun()               # el panel (que sigue abierto) se vuelve a dibujar con el suelo estimado
+    if errors.get(f.key):
+        st.warning(t("{error}. Indique su suelo a mano arriba.", lg, error=SOIL_ERROR))
+    est = estimates.get(f.key)
+    if est:
+        text = t("Estimación satelital: **{textura}**, pH {ph:.1f} ({ph_clase})", lg,
+                 textura=vocab("textura", est["texture"], lg), ph=est["ph"],
+                 ph_clase=t(agro.PH_CLASS_TEXT[est["ph_class"]], lg))
+        if est["nearby"]:
+            text += t(" · punto cercano (en pueblos no hay dato)", lg)
+        st.success(text + t(". Si usted conoce su suelo, su respuesta manda.", lg))
 
 
 def datos_body() -> None:
@@ -320,7 +422,7 @@ def datos_body() -> None:
     k = _wkey(f, "salt")
     st.radio(tr("🧂 ¿Ve costra blanca (salitre) o el agua es salobre?"), salts, index=salts.index(inp.salt), key=k,
              horizontal=True, format_func=lambda x: vocab("sal", x, lg), on_change=_answer, args=(key, "salt", k))
-    # «Estimar mi suelo con satélite (SoilGrids)» (RC-19): T18.
+    _soil_button(f, lg)
 
     st.markdown(tr("##### 🎯 ¿Qué es más importante para usted?"))
     st.caption(tr("0 = no me importa · 5 = es lo más importante"))
@@ -357,7 +459,8 @@ PANELS: list[Panel] = [
           body=sembrar_body),
     Panel("rotaciones", "🔄", "Rotaciones", "🔄 Comparar rotaciones", "Su rotación actual frente a 2 alternativas",
           body=rotaciones_body),
-    Panel("satelite", "🛰️", "Satélite", "🛰️ ¿Cuándo está pelado el campo?", "Verdor del campo visto desde el satélite"),
+    Panel("satelite", "🛰️", "Satélite", "🛰️ ¿Cuándo está pelado el campo?", "Verdor del campo visto desde el satélite",
+          body=satelite_body),
     Panel("whatsapp", "📱", None, "📱 Resumen para WhatsApp", "Mensaje sencillo para enviar", label_literal="WhatsApp",
           body=whatsapp_body),
     Panel("datos", "⚙️", "Mis datos", "⚙️ Mis datos: riego, suelo y prioridades", "Riego, suelo y lo que más le importa",
