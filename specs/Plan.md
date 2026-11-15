@@ -115,6 +115,17 @@ los pedidos se hacen de uno en uno.
 - **RC-12 en los bordes:** la aptitud de los candidatos es la redondeada de la tabla. El cultivo principal es el más
   repetido de la rotación actual (en empate, el primero). Si no hay ninguna secuencia válida, solo se muestra la actual; si
   ninguna sirve como B, se muestran Actual y A.
+- **RC-13 a RC-15 · Formato de los textos (T12).** El Spec da las frases (Anexo C.2) y sus condiciones, pero no cómo se
+  unen. Se fijó así:
+  - «Siembras»: «Cultivo en mes», separados por «, ». La lista de leguminosas (cultivos con N > 0) y las notas de los
+    cultivos aparecen una vez por cultivo, en el orden de la rotación.
+  - Los meses con más helada y con más calor extremo salen de la tabla de clima del lugar, no de los meses de la rotación.
+    En un empate gana el mes más temprano.
+  - Los beneficios y los riesgos que comparan con la actual solo se calculan para A y B. «Baja aptitud» y las notas
+    aparecen en las tres rotaciones.
+  - En el resumen del clima, los meses lluviosos se unen con «, » y « y » / « and » (Anexo C.1).
+  - WhatsApp: encabezado «🌱 *RotaSat* — lugar», viñetas «• », líneas en blanco entre bloques y `**` pasado a `*`
+    (la negrita de WhatsApp). Se compara con la mejor de A y B; si empatan, gana A.
 - **Mejor mes (RC-09):** de enero a diciembre, se queda el mes con la mayor tupla
   `(round(aptitud), round(min(cobertura, 1.5), 2), −exposición_helada)`; solo se reemplaza si es estrictamente mayor,
   así en un empate total gana el mes más temprano.

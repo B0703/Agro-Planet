@@ -648,3 +648,175 @@ def rotation_name(result: RotationResult, lang: str) -> str:
     from .i18n import t
     label = t("Actual", lang) if result.label == "Actual" else result.label
     return f"{label}: " + " → ".join(get(c).name(lang) for c, _ in result.rotation)
+
+
+# --- RC-13 Explicación de cada rotación --------------------------------------------------------------------------
+
+WATER_DIFF_M3HA = 100           # ahorro / exceso de agua que se menciona (m³/ha en 3 años)
+TANKER_M3 = 30                  # camión cisterna
+APTITUDE_GAIN = 3               # «mejor adaptados» si la aptitud supera a la actual en más de 3 puntos
+LOWER_RATIO = 0.9               # heladas/calor y erosión: «menor» si es < 90 % del de la actual
+FROST_MONTH_MIN_DAYS = 0.5      # se menciona el mes con más helada si algún mes supera 0.5 días
+
+
+def _join_list(items: list[str], lang: str) -> str:
+    """«a, b y c» / «a, b and c» (la conjunción viene del Anexo C)."""
+    from .i18n import t
+    if len(items) <= 1:
+        return "".join(items)
+    return ", ".join(items[:-1]) + t(" y ", lang) + items[-1]
+
+
+def explain_rotation(result: RotationResult, current: RotationResult, clim: pd.DataFrame, p90: float,
+                     inputs: FarmInputs, lang: str) -> dict[str, list[str]]:
+    """RC-13: las cinco listas de la explicación (textos del Anexo C.2 ya traducidos), en el orden del original:
+    'por_que', 'evidencia', 'beneficios', 'riesgos' y 'vacios'. `current` es la rotación actual (para comparar)."""
+    from .crops import get
+    from .i18n import month, t
+    c, b = result.evaluation, current.evaluation
+    crops = [get(cid) for cid, _ in result.rotation]
+    is_current = result.label == "Actual"
+
+    por_que = [t("Es la rotación que el agricultor usa hoy: sirve como punto de comparación." if is_current else
+                 "Armada automáticamente con los cultivos más aptos para el clima y suelo de esta chacra, cada uno en "
+                 "su mejor mes de siembra.", lang)]
+    legs = list(dict.fromkeys(cr.name(lang) for cr in crops if cr.n > 0))
+    if legs:
+        por_que.append(t("Incluye leguminosas ({legs}) que fijan nitrógeno del aire y reducen la necesidad de "
+                         "fertilizante.", lang, legs=", ".join(legs)))
+    if len({cr.family for cr in crops}) == len(crops):
+        por_que.append(t("Ninguna familia de cultivo se repite: se corta el ciclo de plagas y enfermedades.", lang))
+
+    meses_txt = ", ".join(f"{get(cid).name(lang)} {t('en', lang)} {month(m, lang)}" for cid, m in result.rotation)
+    evidencia = [
+        t("Siembras: {meses_txt}.", lang, meses_txt=meses_txt),
+        t("Aptitud promedio de sus cultivos en este lugar: **{aptitud:.0f}/100**.", lang, aptitud=c["aptitud"]),
+    ]
+    if inputs.irrigation != "no":
+        evidencia.append(t("Necesidad de riego estimada en 3 años: **{agua:,.0f} m³/ha** (ET0 de NASA POWER × "
+                           "coeficiente de cultivo − lluvia efectiva).", lang, agua=c["agua_m3ha"]))
+    else:
+        evidencia.append(t("Agua que la lluvia no cubre en 3 años: **{agua:,.0f} m³/ha** (NASA POWER).", lang,
+                           agua=c["agua_m3ha"]))
+    if (clim["dias_helada"] > FROST_MONTH_MIN_DAYS).any():
+        mh = int(clim["dias_helada"].idxmax())
+        evidencia.append(t("Mes con más riesgo de helada: **{mes}** ({dias:.0f} días/año con mínima ≤ 2 °C).", lang,
+                           mes=month(mh, lang), dias=clim.loc[mh, "dias_helada"]))
+    mc = int(clim["dias_calor"].idxmax())
+    evidencia.append(t("Mes con más calor extremo: **{mes}** ({dias:.0f} días/año sobre {p90:.1f} °C, el percentil 90 "
+                       "local).", lang, mes=month(mc, lang), dias=clim.loc[mc, "dias_calor"], p90=p90))
+    evidencia.append(t("Meses con suelo desnudo en 3 años: **{meses}**.", lang, meses=c["meses_desnudo"]))
+
+    beneficios, riesgos = [], []
+    d = b["agua_m3ha"] - c["agua_m3ha"]                  # > 0: ahorra agua frente a la actual
+    if not is_current:
+        if d > WATER_DIFF_M3HA:
+            beneficios.append(t("Ahorra ~**{d:,.0f} m³ de agua por hectárea** en 3 años frente a la rotación actual "
+                                "(≈ {cisternas:,.0f} camiones cisterna de 30 m³).", lang, d=d, cisternas=d / TANKER_M3))
+        if c["aptitud"] > b["aptitud"] + APTITUDE_GAIN:
+            beneficios.append(t("Cultivos mejor adaptados a este lugar (aptitud {aptitud:.0f} vs {aptitud_actual:.0f}).",
+                                lang, aptitud=c["aptitud"], aptitud_actual=b["aptitud"]))
+        if c["nitrogeno"] > b["nitrogeno"]:
+            beneficios.append(t("Mejor balance de nitrógeno ({n_bal:+d} vs {n_bal_actual:+d}): menos urea que comprar.",
+                                lang, n_bal=int(c["nitrogeno"]), n_bal_actual=int(b["nitrogeno"])))
+        if c["repeticion"] < b["repeticion"]:
+            beneficios.append(t("Menos repetición de familias → menor presión de plagas del suelo.", lang))
+        if c["clima"] < LOWER_RATIO * b["clima"]:
+            beneficios.append(t("Menor exposición a heladas/calor según el clima histórico del lugar.", lang))
+        if c["erosion"] < LOWER_RATIO * b["erosion"]:
+            beneficios.append(t("Suelo más protegido en meses de lluvia → menos erosión.", lang))
+        if -d > WATER_DIFF_M3HA:
+            riesgos.append(t("Requiere ~{extra:,.0f} m³/ha MÁS agua que la rotación actual.", lang, extra=-d))
+        if c["ingreso"] < b["ingreso"]:
+            riesgos.append(t("Valor de mercado referencial menor: verificar precios y compradores locales antes de "
+                             "cambiar.", lang))
+    if c["aptitud_min"] < LOW_APTITUDE_MIN:
+        riesgos.append(t("⚠️ Al menos un cultivo tiene baja aptitud para este lugar (ver «¿Qué puedo sembrar aquí?»).",
+                         lang))
+    riesgos += list(dict.fromkeys(cr.note(lang) for cr in crops))      # una vez por cultivo
+
+    vacios = [
+        t("NASA POWER tiene celdas de ~50 km; la temperatura se corrigió por altitud con SRTM, pero en quebradas el "
+          "microclima puede diferir. Validar con estación SENAMHI o un termómetro en campo.", lang),
+        t("Coeficientes de cultivo, rangos de temperatura y fechas de siembra son referenciales; varían según "
+          "variedad.", lang),
+        t("No se conocen precios actuales ni acceso a mercados: el puntaje de ingresos es indicativo.", lang),
+    ]
+    if inputs.soil_from_satellite:
+        vacios.append(t("El tipo de suelo es una estimación de SoilGrids (250 m): confírmelo con la prueba de la bolita "
+                        "o un análisis de suelo.", lang))
+    if inputs.salt != "baja":
+        vacios.append(t("La salinidad real requiere un análisis de suelo y agua (conductividad eléctrica).", lang))
+    return {"por_que": por_que, "evidencia": evidencia, "beneficios": beneficios, "riesgos": riesgos, "vacios": vacios}
+
+
+# --- RC-14 Mensaje para WhatsApp ---------------------------------------------------------------------------------
+
+WHATSAPP_TOP = 3
+WHATSAPP_MIN_APTITUDE = 40
+WHATSAPP_MAX_BENEFITS = 3
+
+
+def whatsapp_message(place_name: str, table: pd.DataFrame, results: list[RotationResult], clim: pd.DataFrame,
+                     p90: float, inputs: FarmInputs, lang: str) -> str:
+    """RC-14: el resumen para WhatsApp en `lang`. `results` es la salida de auto_rotations ([Actual, A, B]).
+
+    WhatsApp marca la negrita con un solo asterisco: los `**…**` de los beneficios se pasan a `*…*`.
+    """
+    from .crops import get
+    from .i18n import month, t
+    lines = [f"🌱 *RotaSat* — {place_name}", "", t("Cultivos más aptos para su chacra:", lang)]
+    top = table[table["aptitud"] >= WHATSAPP_MIN_APTITUDE].head(WHATSAPP_TOP)
+    lines += [f"• {get(r.id).name(lang)}: {t('sembrar en', lang)} {month(int(r.mes), lang)}" for r in top.itertuples()]
+    current = results[0]
+    lines += ["", t("Su rotación actual obtiene *{total:.0f}/100*.", lang, total=current.total)]
+    others = results[1:]
+    best = max(others, key=lambda r: r.total) if others else None   # max() se queda con A en un empate
+    if best is not None and best.total > current.total:
+        lines.append(t("La opción *{op}* obtiene *{total:.0f}/100*.", lang, op=rotation_name(best, lang),
+                       total=best.total))
+        benefits = explain_rotation(best, current, clim, p90, inputs, lang)["beneficios"][:WHATSAPP_MAX_BENEFITS]
+        if benefits:
+            lines.append(t("¿Por qué?", lang))
+            lines += [f"• {x.replace('**', '*')}" for x in benefits]
+    else:
+        lines.append(t("Su rotación actual ya es la mejor de las comparadas. ¡Bien hecho!", lang))
+    lines += ["", t("⚠️ Orientación con datos satelitales de la NASA. Converse con su técnico agrario antes de decidir.",
+                    lang)]
+    return "\n".join(lines)
+
+
+# --- RC-15 Resumen del clima en 4 frases -------------------------------------------------------------------------
+
+LITTLE_RAIN_MM = 150
+RAINY_MONTHS = 4
+SEASON_START = 7                # para ordenar los meses lluviosos, el año se cuenta desde julio
+
+
+def climate_summary(clim: pd.DataFrame, lang: str) -> list[str]:
+    """RC-15: las frases de lluvia, temperatura, heladas y evaporación (la última se omite si la lluvia es 0)."""
+    from .i18n import month, t
+    total = float(clim["lluvia"].sum())
+    if total < LITTLE_RAIN_MM:
+        out = [t("🌧️ **Casi no llueve**: {total:,.0f} mm al año. Aquí los cultivos dependen del riego.", lang,
+                 total=total)]
+    else:
+        wettest = clim["lluvia"].sort_values(ascending=False, kind="stable").index[:RAINY_MONTHS]
+        ordered = sorted(wettest, key=lambda m: (m - SEASON_START) % 12)
+        out = [t("🌧️ Llueven **{total:,.0f} mm al año**, sobre todo en {top}.", lang, total=total,
+                 top=_join_list([month(int(m), lang) for m in ordered], lang))]
+    mc, mf = int(clim["t_max"].idxmax()), int(clim["t_min"].idxmin())
+    out.append(t("🌡️ El mes más caluroso es **{mes_calor}** (máxima media de {tx:.0f} °C) y el más frío es "
+                 "**{mes_frio}** (mínima media de {tn:.0f} °C).", lang, mes_calor=month(mc, lang),
+                 tx=clim.loc[mc, "t_max"], mes_frio=month(mf, lang), tn=clim.loc[mf, "t_min"]))
+    h = float(clim["dias_helada"].sum())
+    if h >= 1:
+        out.append(t("❄️ Hay riesgo de helada unos **{h:.0f} días al año**, sobre todo en **{mh}**.", lang, h=h,
+                     mh=month(int(clim["dias_helada"].idxmax()), lang)))
+    else:
+        out.append(t("❄️ Prácticamente **no hay heladas**.", lang))
+    if total > 0:
+        et0 = float(clim["et0"].sum())
+        out.append(t("💨 El sol y el viento evaporan **{et0:,.0f} mm al año**: {ratio:.1f} veces lo que llueve.", lang,
+                     et0=et0, ratio=et0 / total))
+    return out

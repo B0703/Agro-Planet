@@ -125,6 +125,19 @@ def test_b3_auto_rotations(site):
     assert tuple(round(r.total) for r in res) == totals
 
 
+def test_ca10_ica_whatsapp_en():
+    """CA-10: en inglés, el WhatsApp de Ica empieza con el encabezado del lugar, lista «Quinoa: sow in May» y termina
+    con el aviso de consultar al «agricultural advisor». (El nombre del lugar lo da el geocodificador, T14.)"""
+    pc = _place("Ica — Valle (Pueblo Nuevo)")
+    inp = agro.resolve_inputs(climate.detect(pc, -14.13))
+    table = agro.suitability_table(pc.clim, inp)
+    res = agro.auto_rotations(table, pc.clim, inp)
+    msg = agro.whatsapp_message("Pueblo Nuevo, Ica", table, res, pc.clim, pc.p90, inp, "en")
+    assert msg.startswith("🌱 *RotaSat* — Pueblo Nuevo, Ica")
+    assert "Quinoa: sow in May" in msg
+    assert msg.endswith("Talk to your agricultural advisor before deciding.")
+
+
 def test_ca05_ica_sufficient_irrigation():
     """CA-05: en Ica, con «Sí, agua suficiente», la quinua sube de 76 a 89 y queda sin limitaciones importantes."""
     pc = _place("Ica — Valle (Pueblo Nuevo)")
