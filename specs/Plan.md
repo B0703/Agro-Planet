@@ -74,14 +74,18 @@ Ninguno necesita clave (RNF-01). Todas las llamadas pasan por `cache.py`.
 | Clima diario + altitud del área | NASA POWER | `GET https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,T2M_MAX,T2M_MIN,PRECTOTCORR,TOA_SW_DWN&community=AG&latitude={lat}&longitude={lon}&start=20050101&end=20241231&format=JSON`. La altitud del área está en `geometry.coordinates[2]` y el valor `-999` significa que falta el dato |
 | Humedad del suelo | NASA POWER | `.../temporal/monthly/point?parameters=GWETTOP,GWETROOT&start=2005&end=2024` |
 | Altitud SRTM | OpenTopoData (SRTM 90 m) | `GET https://api.opentopodata.org/v1/srtm90m?locations=lat,lon\|...`: los 9 puntos (RC-06) van en una sola llamada |
-| CHIRPS | SERVIR ClimateSERV | `submitDataRequest` (CHIRPS, operación promedio, polígono pequeño alrededor del punto, 2005–2024), luego `getDataRequestProgress` y luego `getDataFromRequest`. Tiempo máximo 300 s |
-| GPM IMERG | SERVIR ClimateSERV | Igual que CHIRPS, para 2015–2024. **Solo se lee de la caché** (Spec §10.2); `prefetch.py` lo descarga para Ica |
+| CHIRPS | SERVIR ClimateSERV | `https://climateserv.servirglobal.net/api/submitDataRequest/?datatype=0&intervaltype=0&operationtype=5&begintime=01/01/2005&endtime=12/31/2024&geometry={polígono}`, luego `getDataRequestProgress/?id=` (hasta 100; −1 es error) y luego `getDataFromRequest/?id=`. El polígono es un cuadrado de **medio lado 0.025°** (un píxel CHIRPS). Tarda 60–80 s. Tiempo máximo 300 s |
+| GPM IMERG | SERVIR ClimateSERV | Igual que CHIRPS con `datatype=26`, de 2015 a 2024, con un cuadrado de **medio lado 0.05°** (un píxel IMERG). Tarda unos 7 min. La serie termina el 2024-06-01, pero igual se divide entre 10 años (es lo que reproduce el Anexo B). **Solo se lee de la caché** (Spec §10.2); `prefetch.py` lo descarga para Ica |
 | NDVI | ORNL DAAC MODIS Web Service | `GET https://modis.ornl.gov/rst/api/v1/MOD13Q1/subset?latitude=..&longitude=..&band=250m_16_days_NDVI&startDate=A2023001&endDate=A2024366&kmAboveBelow=0&kmLeftRight=0` (escala ×0.0001). Para VIIRS se usa `VNP13A1` |
 | Suelo | ISRIC SoilGrids v2 | `GET https://rest.isric.org/soilgrids/v2.0/properties/query?lon=..&lat=..&property=clay&property=sand&property=phh2o&depth=0-5cm&depth=5-15cm&value=mean`. La arcilla y la arena vienen en g/kg (÷10 da %) y el pH viene ×10 |
 | Búsqueda y nombre | Nominatim (OSM) | `/search` con `countrycodes=pe` y luego sin él, `limit=8`, `accept-language=es`; `/reverse`. Se envía un `User-Agent` genérico (`RotaSat/1.0`) y como máximo una llamada por segundo |
 | Mapa | Esri | Teselas `World_Imagery` y la capa `Reference/World_Boundaries_and_Places` |
 
-Los identificadores exactos de los conjuntos de datos de ClimateSERV para CHIRPS e IMERG se confirman en la tarea T07.
+**Calibración de la lluvia (T07).** El Spec no fija el área que se promedia. Se probaron varios tamaños contra la lluvia
+anual del Anexo B.1. Un píxel nativo de cada producto reproduce los 7 lugares exactamente: CHIRPS (0.025) da Chupaca 792,
+Huancavelica 902, Huamanga 642, Andahuaylas 907, Juliaca 498 y Satipo 1582; IMERG (0.05) da Ica 49. Con 0.001 y 0.01 en
+CHIRPS, o con 0.025 en IMERG, salen números distintos. ClimateSERV responde 503 si recibe muchos pedidos a la vez:
+los pedidos se hacen de uno en uno.
 
 ## 5. Caché (RNF-02)
 
