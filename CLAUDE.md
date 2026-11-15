@@ -4,12 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The repository holds **only specifications**; there is no code, build system or tests yet, and the git repo has no commits.
-When code is added, update this file with the real build/run/test commands.
+Progress is tracked in `specs/task.md`; T01 (project skeleton) is done. The git repo has no commits yet.
+
+## Commands
+
+A local venv lives in `.venv/`. On Windows, call it directly:
+
+```bash
+python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python -m streamlit run app_simple.py          # http://localhost:8501
+.venv/Scripts/python -m pytest                                # all tests (config in pyproject.toml)
+.venv/Scripts/python -m pytest tests/test_smoke.py::test_app_starts   # single test
+```
+
+UI tests use `streamlit.testing.v1.AppTest` (see `tests/test_smoke.py`). The layout follows `specs/Plan.md` §2. Keep the layers separate: `rotasat/agro.py` and `rotasat/crops.py` must stay pure, with no network access and no Streamlit, so that the Annex B tests can run offline from `data/cache/`.
 
 - `specs/Spec.md`: the product spec for **RotaSat** (NASA Space Apps Challenge 2026, challenge "Field Shift: Adapting Farms with NASA Data"), written in Spanish. It says *what* the product does and *why*.
 - `specs/Spec-anexo-C-textos.md`: Annex C, the catalog of every visible string in Spanish/English (`ES|` / `EN|`), with `{placeholder:format}` formatting. It was generated from the reference implementation (`app_simple.py` for UI, `agro.py` for the engine), and the bracketed line numbers point into those files.
-- The spec also refers to sibling documents that **don't exist yet**: `Plan.md` (how it's built: languages, libraries, service URLs, tie-break sort order) and `task.md` (work steps). Technology choices belong in `Plan.md`, not in `Spec.md`.
+- `specs/Plan.md`: how it's built: Python + Streamlit, project layout, service URLs, cache design and the D-RC09 tie-break decision. Technology choices belong here, not in `Spec.md`.
+- `specs/task.md`: the ordered task list (T01–T21), each with the requirements it covers and when it counts as done. Work through it in order.
 
 ## Spec conventions that govern all work
 
